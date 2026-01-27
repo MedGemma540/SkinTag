@@ -1,12 +1,16 @@
 # SkinTag
 
-Robust skin lesion classification using MedSigLIP embeddings with augmentations targeting demographic and environmental variations.
+Robust skin lesion classification using MedSigLIP embeddings with augmentations targeting real-world imaging variations.
+
+## Problem
+
+Medical images are captured under inconsistent conditions — different cameras, lighting, compression artifacts, and noise levels. Models trained on clean clinical images often fail when deployed on images from varied sources. We build a classifier robust to these real-world variations.
 
 ## Approach
 
-1. **Pre-trained Model**: MedSigLIP (400M vision encoder trained on dermatology images)
-2. **Transfer Learning**: Extract embeddings, train lightweight classifier
-3. **Augmentations**: Skin tone simulation, lighting variation, image noise
+1. **Pre-trained Model**: MedSigLIP (400M vision encoder trained on medical images)
+2. **Transfer Learning**: Extract embeddings once, train lightweight sklearn classifier
+3. **Augmentations**: Lighting variation, image noise, compression artifacts
 
 ## Setup
 
@@ -16,13 +20,28 @@ pip install -r requirements.txt
 
 ## Usage
 
-```bash
-# Training
-python scripts/train.py
+### Local
 
-# Evaluation
-python scripts/evaluate.py
+```bash
+make install   # Install dependencies
+make data      # Download HAM10000 dataset
+make train     # Run training
+make evaluate  # Run evaluation
 ```
+
+### GitHub Actions
+
+1. Go to **Actions → Train Model → Run workflow**
+2. Dataset URL is pre-filled with HAM10000
+3. Results appear in the workflow summary
+
+## Augmentation Strategy
+
+| Variation | Technique | Real-World Scenario |
+|-----------|-----------|---------------------|
+| Lighting | Brightness, contrast, gamma | Different exam room lighting |
+| Noise | Gaussian, ISO noise | Low-light photos, sensor noise |
+| Quality | JPEG compression | Telemedicine, compressed uploads |
 
 ## Structure
 
