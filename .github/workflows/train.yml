@@ -31,18 +31,17 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Download dataset
-        if: ${{ inputs.dataset_url }}
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+          DATASET_URL: ${{ inputs.dataset_url || 'kaggle://farjanakabirsamanta/skin-cancer-dataset' }}
         run: |
           mkdir -p data
-          if [[ "${{ inputs.dataset_url }}" == kaggle://* ]]; then
+          if [[ "$DATASET_URL" == kaggle://* ]]; then
             pip install -q kaggle
-            DATASET="${{ inputs.dataset_url }}"
-            DATASET="${DATASET#kaggle://}"
+            DATASET="${DATASET_URL#kaggle://}"
             kaggle datasets download -d "$DATASET" -p data/ --unzip
           else
-            curl -L "${{ inputs.dataset_url }}" -o dataset.zip
+            curl -L "$DATASET_URL" -o dataset.zip
             unzip dataset.zip -d data/
             rm dataset.zip
           fi
