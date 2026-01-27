@@ -23,8 +23,10 @@ kaggle datasets download -d farjanakabirsamanta/skin-cancer-dataset -p data/ --u
 ### Local
 
 ```bash
-python scripts/train.py
-python scripts/evaluate.py
+make install   # Install dependencies
+make data      # Download HAM10000 dataset
+make train     # Run training
+make evaluate  # Run evaluation
 ```
 
 ### GitHub Actions
