@@ -3,10 +3,10 @@ model:
   embedding_dim: 1152
   image_size: 448
 
-# Low-resource settings
+# Extraction settings
 extraction:
   batch_size_cpu: 4
-  batch_size_gpu: 16
+  batch_size_gpu: 32   # RTX 4070 Ti SUPER (16GB VRAM) can handle 32+ with fp16
   cache_embeddings: true
 
 training:

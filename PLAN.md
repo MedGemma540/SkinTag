@@ -290,11 +290,13 @@ SkinTag/
 │       └── metrics.py                 # F1, accuracy, AUC, per-group, equalized odds
 ├── .env                               # gitignored — Kaggle credentials, env vars
 ├── .gitignore
-├── Dockerfile                         # Containerized deployment
+├── Dockerfile                         # Containerized deployment (CPU)
+├── Dockerfile.gpu                     # GPU deployment with CUDA
 ├── LICENSE
 ├── Makefile                           # Build targets (install, data, train, app)
 ├── PLAN.md                            # This file
 ├── README.md
+├── run_pipeline.py                    # Unified pipeline: data → embed → train → eval → app
 └── requirements.txt
 ```
 
@@ -302,12 +304,43 @@ SkinTag/
 
 ## Usage
 
+### Unified Pipeline (Recommended)
+
+The `run_pipeline.py` script runs the entire pipeline end-to-end in one command:
+
+```bash
+# Full pipeline: data → embed → train → evaluate → web app
+python run_pipeline.py
+
+# Quick smoke test (500 samples, skip web app)
+python run_pipeline.py --quick --no-app
+
+# Skip training, re-evaluate existing models
+python run_pipeline.py --skip-train
+
+# Just launch the web app (requires prior training)
+python run_pipeline.py --app-only
+```
+
+The pipeline:
+1. **Checks environment** — verifies packages, data, model cache
+2. **Loads data** — reads metadata and image paths (no images in RAM)
+3. **Extracts embeddings** — streams images from disk per-batch through SigLIP
+4. **Trains models** — baseline, logistic regression, deep MLP
+5. **Evaluates** — fairness metrics, per-Fitzpatrick sensitivity, equalized odds
+6. **Launches web app** — FastAPI triage interface
+
+Each stage is wrapped in error handling. If a stage fails, the pipeline logs a warning and continues. Internet is only needed on the first run (SigLIP model download).
+
 ### Setup
 ```bash
 # Install Python dependencies
 pip install -r requirements.txt
 # Or:
 make install
+
+# For GPU support (CUDA 12.6, requires NVIDIA driver ≥535):
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
 
 # Download HAM10000 (requires Kaggle API credentials)
 make data
@@ -318,7 +351,7 @@ make data
 # PAD-UFES-20: from Mendeley Data or Kaggle
 ```
 
-### Training
+### Individual Training Scripts
 ```bash
 # Single dataset (HAM10000), logistic regression
 python scripts/train.py
@@ -350,8 +383,11 @@ python scripts/evaluate_cross_domain.py
 # Local development
 make app                           # http://localhost:8000
 
-# Docker
+# Docker (CPU)
 make app-docker
+
+# Docker with GPU
+make app-docker-gpu
 ```
 
 ---
@@ -373,3 +409,7 @@ make app-docker
 7. **Medical disclaimer everywhere** — this is a screening aid, not a diagnosis. Every output includes a prominent disclaimer. The app makes this impossible to miss.
 
 8. **SigLIP (google/siglip-so400m-patch14-384) as backbone** — 400M parameter vision-language model producing 1152-d embeddings. Strong zero-shot medical image understanding. Model is cached locally via HuggingFace Hub (~1.6GB) and gitignored.
+
+9. **Lazy/streaming image loading** — Dataset loaders store file paths, not PIL images. The embedding extractor loads images per-batch from disk, keeping only a few images in RAM at any time. This reduced data loading from ~393s to ~2s for 29k samples and avoids multi-GB RAM usage.
+
+10. **GPU auto-detection** — Pipeline auto-detects CUDA availability and adjusts batch size (4 for CPU, 16 for GPU). With RTX 4070 Ti SUPER (16GB VRAM), full-dataset embedding extraction runs significantly faster than CPU.

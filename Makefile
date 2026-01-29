@@ -1,13 +1,18 @@
-.PHONY: help install data data-ddi data-pad-ufes train train-all train-multi evaluate evaluate-cross-domain app app-docker clean
+.PHONY: help install data data-ddi data-pad-ufes pipeline pipeline-quick train train-all train-multi evaluate evaluate-cross-domain app app-docker app-docker-gpu clean
 
 help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Setup:"
 	@echo "  install            Install dependencies"
+	@echo "  install-gpu        Install dependencies with CUDA GPU support"
 	@echo "  data               Download HAM10000 dataset from Kaggle"
 	@echo "  data-ddi           Download DDI dataset (requires Stanford AIMI access)"
 	@echo "  data-pad-ufes      Download PAD-UFES-20 dataset"
+	@echo ""
+	@echo "Pipeline (recommended):"
+	@echo "  pipeline           Run full pipeline: data -> embed -> train -> eval -> app"
+	@echo "  pipeline-quick     Quick smoke test (500 samples, no app)"
 	@echo ""
 	@echo "Training:"
 	@echo "  train              Train logistic regression classifier (HAM10000 only)"
@@ -20,12 +25,24 @@ help:
 	@echo ""
 	@echo "Application:"
 	@echo "  app                Run web app locally"
-	@echo "  app-docker         Build and run web app in Docker"
+	@echo "  app-docker         Build and run web app in Docker (CPU)"
+	@echo "  app-docker-gpu     Build and run web app in Docker (GPU)"
 	@echo ""
 	@echo "  clean              Remove cached embeddings and models"
 
 install:
 	pip install -r requirements.txt
+
+install-gpu:
+	pip install -r requirements.txt
+	pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+
+# Unified pipeline
+pipeline:
+	PYTHONPATH=. python run_pipeline.py
+
+pipeline-quick:
+	PYTHONPATH=. python run_pipeline.py --quick --no-app
 
 # Dataset downloads
 data:
@@ -70,7 +87,11 @@ app:
 
 app-docker:
 	docker build -t skintag .
-	docker run -p 8000:8000 -v $(PWD)/results:/app/results -v $(PWD)/data:/app/data skintag
+	docker run -p 8000:8000 -v $(PWD)/results:/app/results skintag
+
+app-docker-gpu:
+	docker build -t skintag-gpu -f Dockerfile.gpu .
+	docker run --gpus all -p 8000:8000 -v $(PWD)/results:/app/results skintag-gpu
 
 clean:
 	rm -rf results/cache/*

@@ -152,8 +152,10 @@ async def health():
     }
 
 
-# Serve static files and frontend
-app.mount("/static", StaticFiles(directory=str(APP_DIR / "static")), name="static")
+# Serve static files and frontend (only if directory exists)
+_static_dir = APP_DIR / "static"
+if _static_dir.is_dir():
+    app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
