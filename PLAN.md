@@ -229,6 +229,11 @@ data/                                  # gitignored — all datasets stored loca
 - **Web app (GPU available)**: Fine-tuned SigLIP — highest accuracy for users with internet access
 - **Web app (CPU fallback)**: XGBoost on frozen SigLIP embeddings — fast, lightweight, highest F1 macro
 - **Mobile (offline)**: Distilled lightweight model (see Phase 2B) — target <25 MB on-device
+| **Classical ML** | Logistic Regression | StandardScaler -> LogisticRegression on 1152-d SigLIP embeddings | sklearn, sub-second training |
+| **Deep learning** | Fine-tuned MLP head | 2-layer MLP (1152->256->2) with dropout+BatchNorm on SigLIP embeddings | PyTorch, early stopping, class-weighted loss |
+| **End-to-end** (optional) | Fine-tuned SigLIP | Unfreezes last N transformer layers + classification head | GPU required, best accuracy for deployment |
+
+The **deployed model** will be whichever performs best on the cross-domain evaluation, ranked by **F1 macro** (the primary metric for imbalanced dermatology data).
 
 ### Full Pipeline Results (47,277 samples, 5 datasets)
 
@@ -250,6 +255,14 @@ The fine-tuned SigLIP (last 4 transformer layers unfrozen, 10 epochs) achieves t
 **Fairness (XGBoost — best embedding model):**
 - Fitzpatrick equalized odds gap: sensitivity=0.044, specificity=0.091
 - Domain equalized odds gap: sensitivity=0.033, specificity=0.064
+| Logistic | 0.838 | 0.840 | 0.792 | 0.660 | 0.922 |
+| **Deep MLP** | **0.913** | **0.908** | **0.878** | **0.753** | **0.980** |
+
+**Best binary model: Deep MLP** (F1 macro=0.878, AUC=0.980)
+
+**Fairness (Deep MLP):**
+- Fitzpatrick equalized odds gap: sensitivity=0.051, specificity=0.212
+- Domain equalized odds gap: sensitivity=0.036, specificity=0.110
 
 **Condition Classification (10-class):**
 
@@ -257,6 +270,7 @@ The fine-tuned SigLIP (last 4 transformer layers unfrozen, 10 epochs) achieves t
 |-------|----------|----------|
 | Logistic | 0.684 | 0.596 |
 | Deep MLP | 0.599 | 0.533 |
+| Deep MLP | 0.680 | 0.631 |
 
 **Per-condition F1 (logistic, evaluation split):**
 
