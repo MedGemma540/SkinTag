@@ -1,4 +1,4 @@
-.PHONY: help venv install install-gpu data data-ddi data-pad-ufes pipeline pipeline-quick train train-all train-multi evaluate evaluate-cross-domain app app-remote stop app-docker app-docker-gpu upload-model clean
+.PHONY: help venv install install-gpu data data-ddi data-pad-ufes pipeline pipeline-quick train train-all train-multi evaluate evaluate-cross-domain app app-remote stop app-docker app-docker-gpu clean
 
 # Python interpreter (prefers venv if available)
 PYTHON := $(shell if [ -f venv/bin/python ]; then echo venv/bin/python; else echo python3; fi)
@@ -36,9 +36,7 @@ help:
 	@echo "  app-docker         Build and run web app in Docker (CPU)"
 	@echo "  app-docker-gpu     Build and run web app in Docker (GPU)"
 	@echo ""
-	@echo "Model Management:"
-	@echo "  upload-model       Upload model to GitHub release (MODEL=path/to/model.pt TAG=v1.0.0)"
-	@echo ""
+	@echo "Cleanup:"
 	@echo "  clean              Remove cached embeddings and models"
 
 venv:
@@ -132,20 +130,3 @@ app-docker-gpu:
 
 clean:
 	rm -rf results/cache/*
-
-# Model management
-upload-model:
-ifndef MODEL
-	$(error MODEL is required. Usage: make upload-model MODEL=path/to/model.pt TAG=v1.0.0)
-endif
-ifndef TAG
-	$(error TAG is required. Usage: make upload-model MODEL=path/to/model.pt TAG=v1.0.0)
-endif
-	@test -f "$(MODEL)" || (echo "Error: Model file '$(MODEL)' not found" && exit 1)
-	@echo "Uploading $(MODEL) to release $(TAG)..."
-	@if gh release view $(TAG) >/dev/null 2>&1; then \
-		gh release upload $(TAG) $(MODEL) --clobber; \
-	else \
-		gh release create $(TAG) $(MODEL) --title "Model $(TAG)" --notes "Model checkpoint $(TAG)"; \
-	fi
-	@echo "Model uploaded successfully"
