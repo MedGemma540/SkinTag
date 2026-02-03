@@ -99,33 +99,30 @@ jobs:
           ./cloudflared tunnel run --token "$TUNNEL_TOKEN" > tunnel.log 2>&1 &
           TUNNEL_PID=$!
 
-          # Wait for tunnel to be ready and extract URL
+          # Wait for tunnel to be ready
           echo "Waiting for tunnel to start..."
           for i in {1..30}; do
-            if grep -q "Connection.*registered" tunnel.log 2>/dev/null; then
-              echo "Tunnel connected!"
+            if grep -q "Registered tunnel connection" tunnel.log 2>/dev/null; then
+              echo "✓ Tunnel connected!"
               break
             fi
             sleep 2
           done
 
-          # Extract tunnel URL (case-insensitive, handles various formats)
-          TUNNEL_URL=$(grep -oiE 'https://[a-z0-9-]+\.cfargotunnel\.com' tunnel.log | head -1)
+          # Extract tunnel ID from logs and construct URL
+          TUNNEL_ID=$(grep -oP 'tunnelID=\K[a-f0-9-]+' tunnel.log | head -1)
 
-          if [ -z "$TUNNEL_URL" ]; then
-            echo "::warning::Could not extract tunnel URL from logs"
+          if [ -z "$TUNNEL_ID" ]; then
+            echo "::error::Could not extract tunnel ID from logs"
             echo "Tunnel logs:"
             cat tunnel.log
-            # Try alternative extraction methods
-            TUNNEL_URL=$(grep -oE 'https://[^ ]+\.trycloudflare\.com' tunnel.log | head -1)
+            exit 1
           fi
 
-          if [ -n "$TUNNEL_URL" ]; then
-            echo "TUNNEL_URL=$TUNNEL_URL" >> $GITHUB_ENV
-            echo "✓ Tunnel URL: $TUNNEL_URL"
-          else
-            echo "::error::Failed to extract tunnel URL"
-          fi
+          TUNNEL_URL="https://${TUNNEL_ID}.cfargotunnel.com"
+          echo "TUNNEL_URL=$TUNNEL_URL" >> $GITHUB_ENV
+          echo "✓ Tunnel URL: $TUNNEL_URL"
+          echo "✓ Tunnel ID: $TUNNEL_ID"
 
       - name: Publish API endpoint
         if: env.TUNNEL_URL != ''
