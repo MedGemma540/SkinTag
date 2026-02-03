@@ -1,9 +1,15 @@
-.PHONY: help install data data-ddi data-pad-ufes pipeline pipeline-quick train train-all train-multi evaluate evaluate-cross-domain app app-docker app-docker-gpu clean
+.PHONY: help venv install install-gpu data data-ddi data-pad-ufes pipeline pipeline-quick train train-all train-multi evaluate evaluate-cross-domain app app-remote stop app-docker app-docker-gpu upload-model clean
+
+# Python interpreter (prefers venv if available)
+PYTHON := $(shell if [ -f venv/bin/python ]; then echo venv/bin/python; else echo python3; fi)
+PYTHON_ENV := OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONPATH=.
+PORT := 8000
 
 help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Setup:"
+	@echo "  venv               Create virtual environment (recommended on macOS)"
 	@echo "  install            Install dependencies"
 	@echo "  install-gpu        Install dependencies with CUDA GPU support"
 	@echo "  data               Download HAM10000 dataset from Kaggle"
@@ -25,24 +31,46 @@ help:
 	@echo ""
 	@echo "Application:"
 	@echo "  app                Run web app locally"
+	@echo "  app-remote         Run web app + ngrok tunnel (HTTPS)"
+	@echo "  stop               Stop server and ngrok"
 	@echo "  app-docker         Build and run web app in Docker (CPU)"
 	@echo "  app-docker-gpu     Build and run web app in Docker (GPU)"
 	@echo ""
+	@echo "Model Management:"
+	@echo "  upload-model       Upload model to GitHub release (MODEL=path/to/model.pt TAG=v1.0.0)"
+	@echo ""
 	@echo "  clean              Remove cached embeddings and models"
 
+venv:
+	@if [ -d venv ]; then \
+		echo "Virtual environment already exists at ./venv"; \
+	else \
+		echo "Creating virtual environment..."; \
+		if command -v python3.11 >/dev/null 2>&1; then \
+			python3.11 -m venv venv; \
+		else \
+			python3 -m venv venv; \
+		fi; \
+		echo "Installing dependencies..."; \
+		venv/bin/pip install --upgrade pip; \
+		venv/bin/pip install -r requirements.txt; \
+		echo "Virtual environment created and dependencies installed"; \
+		echo "Run 'make app' or other commands - they will automatically use the venv"; \
+	fi
+
 install:
-	pip install -r requirements.txt
+	$(PYTHON) -m pip install -r requirements.txt
 
 install-gpu:
-	pip install -r requirements.txt
-	pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+	$(PYTHON) -m pip install -r requirements.txt
+	$(PYTHON) -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
 
 # Unified pipeline
 pipeline:
-	PYTHONPATH=. python run_pipeline.py
+	$(PYTHON_ENV) $(PYTHON) run_pipeline.py
 
 pipeline-quick:
-	PYTHONPATH=. python run_pipeline.py --quick --no-app
+	$(PYTHON_ENV) $(PYTHON) run_pipeline.py --quick --no-app
 
 # Dataset downloads
 data:
@@ -66,24 +94,33 @@ data-pad-ufes:
 
 # Training
 train:
-	PYTHONPATH=. python scripts/train.py
+	$(PYTHON_ENV) $(PYTHON) scripts/train.py
 
 train-all:
-	PYTHONPATH=. python scripts/train_all_models.py
+	$(PYTHON_ENV) $(PYTHON) scripts/train_all_models.py
 
 train-multi:
-	PYTHONPATH=. python scripts/train.py --multi-dataset --domain-balance --model all
+	$(PYTHON_ENV) $(PYTHON) scripts/train.py --multi-dataset --domain-balance --model all
 
 # Evaluation
 evaluate:
-	PYTHONPATH=. python scripts/evaluate.py --models logistic deep baseline
+	$(PYTHON_ENV) $(PYTHON) scripts/evaluate.py --models logistic deep baseline
 
 evaluate-cross-domain:
-	PYTHONPATH=. python scripts/evaluate_cross_domain.py
+	$(PYTHON_ENV) $(PYTHON) scripts/evaluate_cross_domain.py
 
 # Application
 app:
-	PYTHONPATH=. python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+	$(PYTHON_ENV) $(PYTHON) -m uvicorn app.main:app --host 0.0.0.0 --port $(PORT) --reload
+
+app-remote:
+	@$(PYTHON_ENV) $(PYTHON) -m uvicorn app.main:app --host 0.0.0.0 --port $(PORT) --reload & sleep 2 && ngrok http $(PORT)
+
+stop:
+	@pkill -f "uvicorn app.main:app" 2>/dev/null || true
+	@pkill -f ngrok 2>/dev/null || true
+	@lsof -ti:$(PORT) | xargs kill -9 2>/dev/null || true
+	@echo "Stopped"
 
 app-docker:
 	docker build -t skintag .
@@ -95,3 +132,20 @@ app-docker-gpu:
 
 clean:
 	rm -rf results/cache/*
+
+# Model management
+upload-model:
+ifndef MODEL
+	$(error MODEL is required. Usage: make upload-model MODEL=path/to/model.pt TAG=v1.0.0)
+endif
+ifndef TAG
+	$(error TAG is required. Usage: make upload-model MODEL=path/to/model.pt TAG=v1.0.0)
+endif
+	@test -f "$(MODEL)" || (echo "Error: Model file '$(MODEL)' not found" && exit 1)
+	@echo "Uploading $(MODEL) to release $(TAG)..."
+	@if gh release view $(TAG) >/dev/null 2>&1; then \
+		gh release upload $(TAG) $(MODEL) --clobber; \
+	else \
+		gh release create $(TAG) $(MODEL) --title "Model $(TAG)" --notes "Model checkpoint $(TAG)"; \
+	fi
+	@echo "Model uploaded successfully"
