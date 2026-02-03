@@ -4,16 +4,18 @@ Run inference in GitHub Actions via Cloudflare Tunnel - no server needed.
 
 ## Setup
 
-**Automated:**
 ```bash
-# Add to .env file
+# Add to .env
 echo "CLOUDFLARE_API_TOKEN=your_token" > .env
+echo "CLOUDFLARE_ACCOUNT_ID=your_account_id" >> .env
 
 # Run setup
 ./scripts/setup-tunnel.sh
 ```
 
-Get token from: https://dash.cloudflare.com/profile/api-tokens
+Get from:
+- API token: https://dash.cloudflare.com/profile/api-tokens
+- Account ID: https://dash.cloudflare.com/ (in sidebar)
 
 Then: Actions → Deploy Inference Server → Run workflow
 

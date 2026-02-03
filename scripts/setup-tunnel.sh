@@ -2,7 +2,7 @@
 set -e
 
 # Automated Cloudflare Tunnel setup for SkinTag
-# Uses Cloudflare API token (no browser login required)
+# Uses Cloudflare API (no browser login required)
 
 TUNNEL_NAME="${TUNNEL_NAME:-skintag-inference}"
 REPO="${GITHUB_REPOSITORY:-MedGemma540/SkinTag}"
@@ -20,15 +20,33 @@ fi
 if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
     echo "Error: CLOUDFLARE_API_TOKEN not found"
     echo ""
-    echo "Option 1 - Create .env file:"
+    echo "Add to .env file:"
     echo "  echo 'CLOUDFLARE_API_TOKEN=your_token' > .env"
-    echo ""
-    echo "Option 2 - Export variable:"
-    echo "  export CLOUDFLARE_API_TOKEN=your_token"
     echo ""
     echo "Get token from: https://dash.cloudflare.com/profile/api-tokens"
     echo "Required permission: Account: Cloudflare Tunnel (Edit)"
     exit 1
+fi
+
+# Check for Cloudflare Account ID
+if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+    echo "Error: CLOUDFLARE_ACCOUNT_ID not found"
+    echo ""
+    echo "Add to .env file:"
+    echo "  echo 'CLOUDFLARE_ACCOUNT_ID=your_account_id' >> .env"
+    echo ""
+    echo "Find your account ID at: https://dash.cloudflare.com/"
+    exit 1
+fi
+
+# Check if jq is installed
+if ! command -v jq &> /dev/null; then
+    echo "Installing jq..."
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        brew install jq
+    else
+        sudo apt-get update && sudo apt-get install -y jq
+    fi
 fi
 
 # Check if cloudflared is installed
@@ -43,30 +61,66 @@ if ! command -v cloudflared &> /dev/null; then
     fi
 fi
 
-# Set API token for cloudflared
-export TUNNEL_TOKEN="$CLOUDFLARE_API_TOKEN"
-
-# Check if tunnel exists
+# Check if tunnel exists via API
 echo "Checking for existing tunnel..."
-if cloudflared tunnel list 2>/dev/null | grep -q "$TUNNEL_NAME"; then
-    echo ""
-    echo "Tunnel '$TUNNEL_NAME' already exists."
+EXISTING_TUNNEL=$(curl -s -X GET \
+    "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/cfd_tunnel" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+    -H "Content-Type: application/json" | jq -r ".result[] | select(.name == \"$TUNNEL_NAME\") | .id")
+
+if [ -n "$EXISTING_TUNNEL" ]; then
+    echo "Tunnel '$TUNNEL_NAME' already exists (ID: $EXISTING_TUNNEL)"
     read -p "Delete and recreate? (y/N): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        cloudflared tunnel delete "$TUNNEL_NAME"
-        echo "Creating new tunnel..."
-        cloudflared tunnel create "$TUNNEL_NAME"
+        echo "Deleting existing tunnel..."
+        curl -s -X DELETE \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/cfd_tunnel/$EXISTING_TUNNEL" \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" > /dev/null
+        EXISTING_TUNNEL=""
+    else
+        TUNNEL_ID="$EXISTING_TUNNEL"
     fi
-else
-    echo "Creating tunnel '$TUNNEL_NAME'..."
-    cloudflared tunnel create "$TUNNEL_NAME"
+fi
+
+# Create tunnel if it doesn't exist
+if [ -z "$TUNNEL_ID" ]; then
+    echo "Creating tunnel '$TUNNEL_NAME' via API..."
+
+    # Generate a random secret for the tunnel
+    TUNNEL_SECRET=$(openssl rand -base64 32)
+
+    CREATE_RESPONSE=$(curl -s -X POST \
+        "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/cfd_tunnel" \
+        -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+        -H "Content-Type: application/json" \
+        --data "{\"name\":\"$TUNNEL_NAME\",\"tunnel_secret\":\"$TUNNEL_SECRET\"}")
+
+    TUNNEL_ID=$(echo "$CREATE_RESPONSE" | jq -r '.result.id')
+
+    if [ -z "$TUNNEL_ID" ] || [ "$TUNNEL_ID" = "null" ]; then
+        echo "Error: Failed to create tunnel"
+        echo "$CREATE_RESPONSE" | jq
+        exit 1
+    fi
+
+    echo "✓ Tunnel created (ID: $TUNNEL_ID)"
 fi
 
 # Get tunnel token
 echo ""
 echo "Getting tunnel token..."
-TUNNEL_TOKEN=$(cloudflared tunnel token "$TUNNEL_NAME")
+TOKEN_RESPONSE=$(curl -s -X GET \
+    "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/cfd_tunnel/$TUNNEL_ID/token" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN")
+
+TUNNEL_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.result')
+
+if [ -z "$TUNNEL_TOKEN" ] || [ "$TUNNEL_TOKEN" = "null" ]; then
+    echo "Error: Failed to get tunnel token"
+    echo "$TOKEN_RESPONSE" | jq
+    exit 1
+fi
 
 # Set GitHub secrets
 echo ""
@@ -75,7 +129,7 @@ echo "Setting GitHub secrets..."
 if ! command -v gh &> /dev/null; then
     echo "GitHub CLI not found. Install with: brew install gh"
     echo ""
-    echo "Add these secrets manually:"
+    echo "Add this secret manually:"
     echo "  SKINTAG_TUNNEL_TOKEN=$TUNNEL_TOKEN"
     exit 0
 fi
@@ -102,7 +156,7 @@ fi
 echo ""
 echo "=== Setup Complete ==="
 echo ""
-echo "Tunnel: $TUNNEL_NAME"
+echo "Tunnel: $TUNNEL_NAME (ID: $TUNNEL_ID)"
 echo "GitHub secrets configured"
 echo ""
 echo "Next steps:"
