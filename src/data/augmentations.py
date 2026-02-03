@@ -29,6 +29,22 @@ def get_compression_augmentation():
     ])
 
 
+def get_skin_tone_augmentation(p: float = 0.5):
+    """Augmentation for skin tone variation.
+
+    Placeholder for skin tone augmentation.
+
+    Args:
+        p: probability of applying the augmentation
+
+    Returns:
+        Albumentations Compose pipeline
+    """
+    return A.Compose([
+        A.HueSaturationValue(hue_shift_limit=10, sat_shift_limit=20, val_shift_limit=10, p=p),
+    ])
+
+
 def get_domain_bridging_augmentation(source_domain: str, p: float = 0.5):
     """Get domain-bridging augmentation based on source imaging domain.
 
