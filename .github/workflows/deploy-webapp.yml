@@ -49,10 +49,14 @@ jobs:
           cp public/index.html dist/
           # Copy classic version
           cp -r public/classic dist/
+          # Copy API config if it exists
+          [ -f public/api-config.json ] && cp public/api-config.json dist/ || echo '{"apiUrl":"","status":"offline"}' > dist/api-config.json
           # Copy Next.js build to app/
           cp -r app/skintag-webapp/out dist/app
-          # Configure API URL for classic version
-          sed -i "s|API_URL_PLACEHOLDER|${{ secrets.API_URL }}|g" dist/classic/config.js
+          # Configure API URL for classic version (fallback)
+          if [ -f dist/classic/config.js ]; then
+            sed -i "s|API_URL_PLACEHOLDER|${{ secrets.API_URL }}|g" dist/classic/config.js
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

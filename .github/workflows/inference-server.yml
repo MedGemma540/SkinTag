@@ -96,8 +96,39 @@ jobs:
         env:
           TUNNEL_TOKEN: ${{ secrets.SKINTAG_TUNNEL_TOKEN }}
         run: |
-          ./cloudflared tunnel run --token "$TUNNEL_TOKEN" &
-          sleep 5
+          ./cloudflared tunnel run --token "$TUNNEL_TOKEN" > tunnel.log 2>&1 &
+          sleep 10
+
+          # Extract tunnel URL from logs
+          TUNNEL_URL=$(grep -oP 'https://[a-z0-9-]+\.cfargotunnel\.com' tunnel.log | head -1)
+
+          if [ -z "$TUNNEL_URL" ]; then
+            echo "Warning: Could not extract tunnel URL from logs"
+            cat tunnel.log
+          else
+            echo "TUNNEL_URL=$TUNNEL_URL" >> $GITHUB_ENV
+            echo "✓ Tunnel URL: $TUNNEL_URL"
+          fi
+
+      - name: Publish API endpoint
+        if: env.TUNNEL_URL != ''
+        run: |
+          # Create API config JSON
+          mkdir -p public
+          cat > public/api-config.json <<EOF
+          {
+            "apiUrl": "${{ env.TUNNEL_URL }}",
+            "status": "online",
+            "updatedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          EOF
+
+          # Commit to main branch (deploy-webapp workflow will pick it up)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/api-config.json
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update API endpoint [skip ci]"
+          git push origin HEAD:main || echo "Failed to push API config (may already be up to date)"
 
       - name: Cancel previous workflow
         if: steps.find_previous.outputs.previous_run_id != ''
