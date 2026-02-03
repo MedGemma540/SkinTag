@@ -6,18 +6,19 @@ Run inference in GitHub Actions via Cloudflare Tunnel - no server needed.
 
 **Automated:**
 ```bash
+export CLOUDFLARE_API_TOKEN=your_token  # Get from dash.cloudflare.com/profile/api-tokens
 ./scripts/setup-tunnel.sh
 ```
 
 **Manual:**
 ```bash
 brew install cloudflare/cloudflare/cloudflared
-cloudflared tunnel login
+export CLOUDFLARE_API_TOKEN=your_token
 cloudflared tunnel create skintag-inference
 cloudflared tunnel token skintag-inference | gh secret set SKINTAG_TUNNEL_TOKEN
 ```
 
-Then run: Actions → Deploy Inference Server → Run workflow
+Then: Actions → Deploy Inference Server → Run workflow
 
 ## Features
 

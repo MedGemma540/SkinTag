@@ -2,13 +2,29 @@
 set -e
 
 # Automated Cloudflare Tunnel setup for SkinTag
-# Based on medchat pattern
+# Uses Cloudflare API token (no browser login required)
 
 TUNNEL_NAME="${TUNNEL_NAME:-skintag-inference}"
 REPO="${GITHUB_REPOSITORY:-MedGemma540/SkinTag}"
 
 echo "=== SkinTag Cloudflare Tunnel Setup ==="
 echo ""
+
+# Check for Cloudflare API token
+if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+    echo "Error: CLOUDFLARE_API_TOKEN environment variable not set"
+    echo ""
+    echo "Get your API token from:"
+    echo "  https://dash.cloudflare.com/profile/api-tokens"
+    echo ""
+    echo "Required permissions:"
+    echo "  - Account: Cloudflare Tunnel (Edit)"
+    echo ""
+    echo "Then run:"
+    echo "  export CLOUDFLARE_API_TOKEN=your_token_here"
+    echo "  ./scripts/setup-tunnel.sh"
+    exit 1
+fi
 
 # Check if cloudflared is installed
 if ! command -v cloudflared &> /dev/null; then
@@ -22,13 +38,12 @@ if ! command -v cloudflared &> /dev/null; then
     fi
 fi
 
-# Login to Cloudflare
-echo "Logging in to Cloudflare..."
-echo "This will open your browser for authentication."
-cloudflared tunnel login
+# Set API token for cloudflared
+export TUNNEL_TOKEN="$CLOUDFLARE_API_TOKEN"
 
 # Check if tunnel exists
-if cloudflared tunnel list | grep -q "$TUNNEL_NAME"; then
+echo "Checking for existing tunnel..."
+if cloudflared tunnel list 2>/dev/null | grep -q "$TUNNEL_NAME"; then
     echo ""
     echo "Tunnel '$TUNNEL_NAME' already exists."
     read -p "Delete and recreate? (y/N): " -n 1 -r
