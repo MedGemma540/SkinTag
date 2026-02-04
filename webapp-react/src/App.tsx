@@ -59,6 +59,11 @@ function AppContent() {
     setShowResults(false)
   }
 
+  const handleAnalyzeAnother = () => {
+    clearImage()
+    setShowResults(false)
+  }
+
   const handleShowCropper = () => {
     setShowCropper(true)
   }
@@ -153,7 +158,7 @@ function AppContent() {
 
               {state.results && (
                 <ResultsContainer showResults={state.showResults} onClose={handleCloseResults}>
-                  <Results results={state.results} />
+                  <Results results={state.results} onAnalyzeAnother={handleAnalyzeAnother} />
                 </ResultsContainer>
               )}
             </>

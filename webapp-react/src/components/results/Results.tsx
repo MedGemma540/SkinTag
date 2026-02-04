@@ -9,9 +9,10 @@ import { DisclaimerBanner } from '@/components/layout/DisclaimerBanner'
 
 interface ResultsProps {
   results: AnalysisResult
+  onAnalyzeAnother?: () => void
 }
 
-export function Results({ results }: ResultsProps) {
+export function Results({ results, onAnalyzeAnother }: ResultsProps) {
   return (
     <div className="space-y-6">
       <div id="results-capture" className="space-y-6">
@@ -43,7 +44,7 @@ export function Results({ results }: ResultsProps) {
         <DisclaimerBanner />
       </div>
 
-      <CTAActions tier={results.urgency_tier} results={results} />
+      <CTAActions tier={results.urgency_tier} results={results} onAnalyzeAnother={onAnalyzeAnother} />
     </div>
   )
 }

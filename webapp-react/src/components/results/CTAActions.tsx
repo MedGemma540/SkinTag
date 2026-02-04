@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { MapPin, Download, Copy } from 'lucide-react'
+import { MapPin, Download, Copy, Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { downloadResultsAsImage, formatResultsAsText, copyResultsToClipboard } from '@/lib/downloadUtils'
 import type { AnalysisResult } from '@/types'
@@ -7,6 +7,7 @@ import type { AnalysisResult } from '@/types'
 interface CTAActionsProps {
   tier: 'low' | 'moderate' | 'high'
   results: AnalysisResult
+  onAnalyzeAnother?: () => void
 }
 
 const tierActions = {
@@ -21,7 +22,7 @@ const tierActions = {
   }
 }
 
-export function CTAActions({ tier, results }: CTAActionsProps) {
+export function CTAActions({ tier, results, onAnalyzeAnother }: CTAActionsProps) {
   const actions = tierActions[tier]
 
   const handleClick = (action: string) => {
@@ -78,6 +79,17 @@ export function CTAActions({ tier, results }: CTAActionsProps) {
           Copy Text
         </Button>
       </div>
+
+      {onAnalyzeAnother && (
+        <Button
+          onClick={onAnalyzeAnother}
+          variant="ghost"
+          className="w-full"
+        >
+          <Upload className="w-4 h-4" />
+          Analyze Another Image
+        </Button>
+      )}
     </div>
   )
 }
