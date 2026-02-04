@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, VisuallyHidden } from '@/components/ui/dialog'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Camera, CheckCircle, Sun, Image as ImageIcon } from 'lucide-react'
@@ -132,6 +132,10 @@ export function OnboardingModal() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="max-w-md">
+        <VisuallyHidden>
+          <DialogTitle>{currentTip.title}</DialogTitle>
+          <DialogDescription>{currentTip.description}</DialogDescription>
+        </VisuallyHidden>
         {content}
       </DialogContent>
     </Dialog>

@@ -7,6 +7,8 @@ const Dialog = DialogPrimitive.Root
 const DialogTrigger = DialogPrimitive.Trigger
 const DialogPortal = DialogPrimitive.Portal
 const DialogClose = DialogPrimitive.Close
+const DialogTitle = DialogPrimitive.Title
+const DialogDescription = DialogPrimitive.Description
 
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
@@ -47,4 +49,18 @@ const DialogContent = React.forwardRef<
 ))
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
-export { Dialog, DialogTrigger, DialogContent, DialogClose }
+const VisuallyHidden = React.forwardRef<
+  HTMLSpanElement,
+  React.HTMLAttributes<HTMLSpanElement>
+>(({ children, ...props }, ref) => (
+  <span
+    ref={ref}
+    className="sr-only"
+    {...props}
+  >
+    {children}
+  </span>
+))
+VisuallyHidden.displayName = 'VisuallyHidden'
+
+export { Dialog, DialogTrigger, DialogContent, DialogClose, DialogTitle, DialogDescription, VisuallyHidden }

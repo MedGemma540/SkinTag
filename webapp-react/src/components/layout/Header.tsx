@@ -1,6 +1,6 @@
 import { Info } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, VisuallyHidden } from '@/components/ui/dialog'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 
 export function Header() {
@@ -44,6 +44,10 @@ export function Header() {
       ) : (
         <Dialog open={showInfo} onOpenChange={setShowInfo}>
           <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+            <VisuallyHidden>
+              <DialogTitle>About SkinTag</DialogTitle>
+              <DialogDescription>Learn about SkinTag's AI technology and how it works</DialogDescription>
+            </VisuallyHidden>
             <AboutContent />
           </DialogContent>
         </Dialog>
