@@ -89,6 +89,18 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
+  /* Frosted glass effect for cards and surfaces */
+  [class*="bg-[var(--color-surface)]"]:not(button):not(.no-glass),
+  [style*="background-color: var(--color-surface)"] {
+    background-color: color-mix(in srgb, var(--color-surface) 92%, transparent) !important;
+    backdrop-filter: blur(12px);
+  }
+
+  [class*="bg-[var(--color-surface-alt)]"]:not(button) {
+    background-color: color-mix(in srgb, var(--color-surface-alt) 88%, transparent) !important;
+    backdrop-filter: blur(8px);
+  }
+
   body::before {
     content: '';
     position: fixed;
