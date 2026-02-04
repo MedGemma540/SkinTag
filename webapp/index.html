@@ -38,11 +38,55 @@
             --red: #b91c1c;
             --red-bg: #fde8e8;
             --red-border: #f5b5b5;
+
+            /* iOS Design Tokens: 8pt Grid System */
+            --space-1: 8px;
+            --space-2: 16px;
+            --space-3: 24px;
+            --space-4: 32px;
+            --space-5: 40px;
+            --space-6: 48px;
+            --space-7: 56px;
+            --space-8: 64px;
+
+            /* iOS Typography Scale */
+            --text-xs: 11px;
+            --text-sm: 13px;
+            --text-base: 15px;
+            --text-lg: 17px;
+            --text-xl: 20px;
+            --text-2xl: 28px;
+            --text-3xl: 34px;
+            --text-4xl: 40px;
+
+            /* 8pt-aligned Line Heights */
+            --leading-tight: 24px;
+            --leading-normal: 32px;
+            --leading-relaxed: 40px;
+            --leading-loose: 48px;
+
+            /* Touch Targets */
+            --touch-target: 44px;
+
+            /* Border Radius */
             --radius: 12px;
             --radius-lg: 20px;
+
+            /* Shadows */
             --shadow-sm: 0 1px 2px rgba(26,23,20,0.04);
             --shadow: 0 2px 8px rgba(26,23,20,0.06), 0 1px 2px rgba(26,23,20,0.04);
             --shadow-lg: 0 8px 32px rgba(26,23,20,0.08), 0 2px 8px rgba(26,23,20,0.04);
+
+            /* iOS Animation Timing */
+            --ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
+            --ease-out: cubic-bezier(0.25, 0.1, 0.25, 1);
+            --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+            --duration-fast: 0.2s;
+            --duration-normal: 0.3s;
+            --duration-slow: 0.5s;
+
+            /* Noise Texture */
+            --noise-opacity: 0.025;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -134,7 +178,7 @@
             border-radius: var(--radius);
             padding: 0.85rem 1rem;
             margin-bottom: 2rem;
-            font-size: 0.8rem;
+            font-size: var(--text-xs);
             color: var(--red);
             line-height: 1.6;
         }
@@ -159,6 +203,11 @@
             background: var(--surface-alt);
             transform: translateY(-1px);
             box-shadow: var(--shadow);
+        }
+
+        .upload-zone:active {
+            transform: scale(0.99);
+            box-shadow: var(--shadow-sm);
         }
 
         .upload-icon {
@@ -230,6 +279,11 @@
             border-color: var(--border-strong);
         }
 
+        .camera-btn:active {
+            transform: scale(0.96);
+            background: var(--border);
+        }
+
         .camera-btn svg { width: 16px; height: 16px; }
 
         /* ── Preview ── */
@@ -293,6 +347,7 @@
             color: #fff;
         }
         .btn-dark:hover { background: #2d2a26; }
+        .btn-dark:active { transform: scale(0.96); }
         .btn-dark:disabled { opacity: 0.4; cursor: not-allowed; }
 
         .btn-ghost {
@@ -301,51 +356,226 @@
             border: 1px solid var(--border);
         }
         .btn-ghost:hover { background: var(--bg-warm); }
+        .btn-ghost:active { transform: scale(0.96); }
 
-        /* ── Loader ── */
-        .loader-screen {
+        /* ── Skeleton Loading ── */
+        .skeleton {
+            background: linear-gradient(90deg, var(--surface-alt) 25%, var(--bg-warm) 50%, var(--surface-alt) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s ease-in-out infinite;
+            border-radius: var(--radius);
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-results {
             display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(246,244,240,0.92);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 100;
-            flex-direction: column;
+            margin-top: 2rem;
+        }
+
+        .skeleton-results.visible { display: block; }
+
+        .skeleton-risk {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2.25rem 1.5rem 1.75rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .skeleton-risk-number {
+            width: 120px;
+            height: 64px;
+            margin: 0 auto 0.5rem;
+        }
+
+        .skeleton-risk-label {
+            width: 160px;
+            height: 12px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .skeleton-risk-meter {
+            width: 320px;
+            max-width: 100%;
+            height: 6px;
+            margin: 0 auto;
+        }
+
+        .skeleton-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .skeleton-title {
+            width: 140px;
+            height: 12px;
+            margin-bottom: 1.15rem;
+        }
+
+        .skeleton-bar {
+            display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 1.25rem;
+            gap: 0.65rem;
+            margin-bottom: 0.65rem;
         }
 
-        .loader-screen.visible { display: flex; }
-
-        .loader-ring {
-            width: 44px;
-            height: 44px;
-            border: 3px solid var(--border);
-            border-top-color: var(--accent-warm);
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
+        .skeleton-bar-label {
+            width: 85px;
+            height: 14px;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .skeleton-bar-track {
+            flex: 1;
+            height: 7px;
+        }
 
-        .loader-screen p {
-            font-family: var(--serif);
-            font-size: 1.05rem;
-            color: var(--text-secondary);
+        .skeleton-bar-val {
+            width: 48px;
+            height: 14px;
         }
 
         /* ── Results ── */
-        .results { display: none; margin-top: 2rem; }
+        .results {
+            display: none;
+            margin-top: var(--space-4);
+        }
         .results.visible {
             display: block;
             animation: fadeUp 0.5s ease both;
         }
 
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
+            from { opacity: 0; transform: translateY(var(--space-2)); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Bottom Sheet (Mobile) ── */
+        @media (max-width: 767px) {
+            .results {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: var(--bg);
+                border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+                box-shadow: 0 -4px 24px rgba(26,23,20,0.12);
+                max-height: 85vh;
+                overflow-y: auto;
+                padding: 0.75rem 1.25rem 2rem;
+                margin: 0;
+                z-index: 50;
+                transform: translateY(100%);
+                transition: none;
+            }
+
+            .results.visible {
+                animation: slideUp 0.4s cubic-bezier(0.32, 0.72, 0, 1) both;
+            }
+
+            @keyframes slideUp {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+            }
+
+            .results::before {
+                content: '';
+                display: block;
+                width: 36px;
+                height: 4px;
+                background: var(--border-strong);
+                border-radius: 2px;
+                margin: 0.5rem auto 1.5rem;
+            }
+
+            .skeleton-results {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: var(--bg);
+                border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+                box-shadow: 0 -4px 24px rgba(26,23,20,0.12);
+                max-height: 85vh;
+                overflow-y: auto;
+                padding: 0.75rem 1.25rem 2rem;
+                margin: 0;
+                z-index: 50;
+                transform: translateY(100%);
+            }
+
+            .skeleton-results.visible {
+                animation: slideUp 0.4s cubic-bezier(0.32, 0.72, 0, 1) both;
+            }
+
+            .skeleton-results::before {
+                content: '';
+                display: block;
+                width: 36px;
+                height: 4px;
+                background: var(--border-strong);
+                border-radius: 2px;
+                margin: 0.5rem auto 1.5rem;
+            }
+        }
+
+        /* ── Progressive Disclosure (ABCDE) ── */
+        .abcde-toggle {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background: none;
+            border: none;
+            padding: 0;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-family: var(--sans);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        @media (max-width: 767px) {
+            .abcde-toggle { display: flex; }
+            .card-title.abcde-title { display: none; }
+        }
+
+        .abcde-toggle-icon {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
+        .abcde-toggle.expanded .abcde-toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .abcde-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
+        @media (min-width: 768px) {
+            .abcde-content {
+                max-height: none !important;
+            }
+        }
+
+        .abcde-content.expanded {
+            max-height: 500px;
         }
 
         /* Risk display */
@@ -353,9 +583,9 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius-lg);
-            padding: 2.25rem 1.5rem 1.75rem;
+            padding: var(--space-5) var(--space-3) var(--space-4);
             text-align: center;
-            margin-bottom: 1rem;
+            margin-bottom: var(--space-2);
             box-shadow: var(--shadow);
             position: relative;
             overflow: hidden;
@@ -374,10 +604,10 @@
 
         .risk-number {
             font-family: var(--serif);
-            font-size: 4rem;
+            font-size: 64px;
             font-weight: 400;
-            line-height: 1;
-            margin-bottom: 0.15rem;
+            line-height: var(--space-8);
+            margin-bottom: var(--space-1);
             letter-spacing: -0.03em;
         }
 
@@ -406,7 +636,7 @@
         .risk-meter-fill {
             height: 100%;
             border-radius: 3px;
-            transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: width 1s var(--ease-spring);
         }
 
         .risk-display.low .risk-meter-fill { background: var(--green); }
@@ -427,8 +657,8 @@
         /* Tier card */
         .tier {
             border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            padding: var(--space-3);
+            margin-bottom: var(--space-2);
             border: 1px solid;
         }
 
@@ -439,8 +669,8 @@
         .tier-head {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            margin-bottom: 0.65rem;
+            gap: var(--space-2);
+            margin-bottom: var(--space-2);
         }
 
         .tier-pip {
@@ -456,8 +686,9 @@
 
         .tier-name {
             font-family: var(--serif);
-            font-size: 1.15rem;
+            font-size: var(--text-xl);
             font-weight: 400;
+            line-height: var(--leading-normal);
         }
 
         .tier.low .tier-name { color: var(--green); }
@@ -466,18 +697,21 @@
 
         .tier-conf {
             margin-left: auto;
-            font-size: 0.7rem;
-            padding: 0.2rem 0.6rem;
+            font-size: var(--text-xs);
+            padding: var(--space-1) var(--space-2);
             border-radius: 100px;
             background: rgba(0,0,0,0.05);
             color: var(--text-muted);
             font-weight: 500;
             letter-spacing: 0.02em;
+            min-height: var(--space-3);
+            display: inline-flex;
+            align-items: center;
         }
 
         .tier-rec {
-            font-size: 0.9rem;
-            line-height: 1.7;
+            font-size: var(--text-base);
+            line-height: var(--leading-normal);
             color: var(--text-secondary);
         }
 
@@ -526,7 +760,7 @@
         .bar-fill {
             height: 100%;
             border-radius: 4px;
-            transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: width 1s var(--ease-spring);
         }
 
         .bar-fill.benign { background: var(--green); }
@@ -628,16 +862,16 @@
 
         /* ── Responsive ── */
         @media (max-width: 520px) {
-            .page { padding: 1rem 0.85rem 3rem; }
-            .logo { font-size: 2rem; }
-            .upload-zone { padding: 2rem 1rem; }
-            .risk-number { font-size: 3rem; }
+            .page { padding: var(--space-2) var(--space-2) var(--space-6); }
+            .logo { font-size: var(--text-3xl); }
+            .upload-zone { padding: var(--space-4) var(--space-2); }
+            .risk-number { font-size: var(--space-6); }
             .abcde-row { grid-template-columns: repeat(3, 1fr); }
             .abcde-cell:nth-child(4), .abcde-cell:nth-child(5) {
                 grid-column: span 1;
             }
-            .bar-label { width: 72px; font-size: 0.8rem; }
-            .cond-top { font-size: 1.2rem; }
+            .bar-label { width: 72px; font-size: var(--text-sm); }
+            .cond-top { font-size: var(--text-xl); }
         }
     </style>
 </head>
@@ -691,10 +925,34 @@
             </div>
         </div>
 
-        <!-- Loading -->
-        <div class="loader-screen" id="loader">
-            <div class="loader-ring"></div>
-            <p>Analyzing with SigLIP&hellip;</p>
+        <!-- Skeleton Loading -->
+        <div class="skeleton-results" id="skeletonResults">
+            <div class="skeleton-risk">
+                <div class="skeleton skeleton-risk-number"></div>
+                <div class="skeleton skeleton-risk-label"></div>
+                <div class="skeleton skeleton-risk-meter"></div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton-bar">
+                    <div class="skeleton skeleton-bar-label"></div>
+                    <div class="skeleton skeleton-bar-track"></div>
+                    <div class="skeleton skeleton-bar-val"></div>
+                </div>
+                <div class="skeleton-bar">
+                    <div class="skeleton skeleton-bar-label"></div>
+                    <div class="skeleton skeleton-bar-track"></div>
+                    <div class="skeleton skeleton-bar-val"></div>
+                </div>
+            </div>
+            <div class="skeleton-card">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton-bar">
+                    <div class="skeleton skeleton-bar-label"></div>
+                    <div class="skeleton skeleton-bar-track"></div>
+                    <div class="skeleton skeleton-bar-val"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Results -->
@@ -751,32 +1009,40 @@
 
             <!-- ABCDE -->
             <div class="card">
-                <div class="card-title">Self-Check &mdash; ABCDE Criteria</div>
-                <div class="abcde-row">
-                    <div class="abcde-cell">
-                        <div class="abcde-char">A</div>
-                        <div class="abcde-word">Asymmetry</div>
-                        <div class="abcde-hint">Halves don't match</div>
-                    </div>
-                    <div class="abcde-cell">
-                        <div class="abcde-char">B</div>
-                        <div class="abcde-word">Border</div>
-                        <div class="abcde-hint">Irregular edges</div>
-                    </div>
-                    <div class="abcde-cell">
-                        <div class="abcde-char">C</div>
-                        <div class="abcde-word">Color</div>
-                        <div class="abcde-hint">Uneven shades</div>
-                    </div>
-                    <div class="abcde-cell">
-                        <div class="abcde-char">D</div>
-                        <div class="abcde-word">Diameter</div>
-                        <div class="abcde-hint">&gt; 6 mm</div>
-                    </div>
-                    <div class="abcde-cell">
-                        <div class="abcde-char">E</div>
-                        <div class="abcde-word">Evolution</div>
-                        <div class="abcde-hint">Changing shape</div>
+                <div class="card-title abcde-title">Self-Check &mdash; ABCDE Criteria</div>
+                <button class="abcde-toggle" id="abcdeToggle" type="button">
+                    Self-Check &mdash; ABCDE Criteria
+                    <svg class="abcde-toggle-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div class="abcde-content" id="abcdeContent">
+                    <div class="abcde-row">
+                        <div class="abcde-cell">
+                            <div class="abcde-char">A</div>
+                            <div class="abcde-word">Asymmetry</div>
+                            <div class="abcde-hint">Halves don't match</div>
+                        </div>
+                        <div class="abcde-cell">
+                            <div class="abcde-char">B</div>
+                            <div class="abcde-word">Border</div>
+                            <div class="abcde-hint">Irregular edges</div>
+                        </div>
+                        <div class="abcde-cell">
+                            <div class="abcde-char">C</div>
+                            <div class="abcde-word">Color</div>
+                            <div class="abcde-hint">Uneven shades</div>
+                        </div>
+                        <div class="abcde-cell">
+                            <div class="abcde-char">D</div>
+                            <div class="abcde-word">Diameter</div>
+                            <div class="abcde-hint">&gt; 6 mm</div>
+                        </div>
+                        <div class="abcde-cell">
+                            <div class="abcde-char">E</div>
+                            <div class="abcde-word">Evolution</div>
+                            <div class="abcde-hint">Changing shape</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -806,8 +1072,10 @@
         const previewName = $('previewName');
         const clearBtn = $('clearBtn');
         const analyzeBtn = $('analyzeBtn');
-        const loader = $('loader');
+        const skeletonResults = $('skeletonResults');
         const results = $('results');
+        const abcdeToggle = $('abcdeToggle');
+        const abcdeContent = $('abcdeContent');
 
         let selectedFile = null;
 
@@ -824,6 +1092,7 @@
                 previewName.textContent = file.name;
                 preview.classList.add('visible');
                 results.classList.remove('visible');
+                skeletonResults.classList.remove('visible');
                 uploadZone.style.display = 'none';
                 $('cameraRow').style.display = 'none';
             };
@@ -852,6 +1121,7 @@
             cameraInput.value = '';
             preview.classList.remove('visible');
             results.classList.remove('visible');
+            skeletonResults.classList.remove('visible');
             uploadZone.style.display = '';
             // Re-show camera row on touch devices
             if (window.matchMedia('(pointer: coarse)').matches) {
@@ -859,11 +1129,20 @@
             }
         });
 
+        // ABCDE toggle
+        abcdeToggle.addEventListener('click', () => {
+            abcdeToggle.classList.toggle('expanded');
+            abcdeContent.classList.toggle('expanded');
+        });
+
         // ── Analyze ──
         analyzeBtn.addEventListener('click', async () => {
             if (!selectedFile) return;
             analyzeBtn.disabled = true;
-            loader.classList.add('visible');
+
+            // Show skeleton immediately
+            skeletonResults.classList.add('visible');
+            results.classList.remove('visible');
 
             try {
                 const fd = new FormData();
@@ -876,15 +1155,21 @@
                 showResults(await res.json());
             } catch (err) {
                 alert('Analysis failed: ' + err.message);
+                skeletonResults.classList.remove('visible');
             } finally {
                 analyzeBtn.disabled = false;
-                loader.classList.remove('visible');
             }
         });
 
         // ── Display results ──
         function showResults(d) {
-            results.classList.add('visible');
+            // Hide skeleton, show results with smooth transition
+            skeletonResults.classList.remove('visible');
+
+            // Small delay to ensure skeleton is hidden before showing results
+            setTimeout(() => {
+                results.classList.add('visible');
+            }, 50);
 
             const score = d.risk_score;
             const pct = (score * 100).toFixed(1);
@@ -932,7 +1217,10 @@
             // Disclaimer
             $('resultNotice').innerHTML = '<strong>Important:</strong> ' + d.disclaimer;
 
-            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Scroll to results (only on desktop, mobile bottom sheet doesn't need scroll)
+            if (window.innerWidth >= 768) {
+                results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
     </script>
