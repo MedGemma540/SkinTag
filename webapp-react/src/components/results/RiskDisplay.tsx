@@ -25,15 +25,15 @@ export function RiskDisplay({ score, tier }: RiskDisplayProps) {
 
   return (
     <div>
-      <h3 className="text-[17px] font-semibold mb-4">Risk Assessment</h3>
-      <div className="flex items-end gap-2 mb-4">
+      <h3 className="text-[15px] sm:text-[17px] font-semibold mb-3 sm:mb-4">Risk Assessment</h3>
+      <div className="flex items-end gap-2 mb-3 sm:mb-4">
         <div
-          className="text-[64px] leading-none font-semibold"
+          className="text-[48px] sm:text-[64px] leading-none font-semibold"
           style={{ fontFamily: "'Instrument Serif', serif", color }}
         >
           {animatedScore}%
         </div>
-        <div className="text-[17px] text-[var(--color-text-muted)] pb-2">
+        <div className="text-[15px] sm:text-[17px] text-[var(--color-text-muted)] pb-1 sm:pb-2">
           melanoma risk
         </div>
       </div>

@@ -68,11 +68,11 @@ function AppContent() {
     <div className="min-h-screen flex flex-col">
       <OnboardingModal />
 
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-4 right-4 z-50 sm:top-6 sm:right-6">
         <ThemeToggle />
       </div>
 
-      <div className="flex-1 w-full max-w-3xl mx-auto px-4">
+      <div className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6">
         <Header />
 
         <main className="pb-8">
