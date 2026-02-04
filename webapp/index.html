@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="description" content="AI-powered skin lesion screening for underserved communities">
     <meta name="theme-color" content="#f6f4f0">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -1640,24 +1641,12 @@
 
         // CTA button handlers
         function handleCTAClick(action) {
-            const message = 'Feature coming soon! For now, screenshot your results or email them to yourself.';
-            alert(message);
+            showToast('<strong>Feature coming soon!</strong><br>For now, screenshot your results or email them to yourself.', 'info', 4000);
         }
 
         // Add CTA event listeners
         $('ctaBtn1')?.addEventListener('click', () => handleCTAClick('action1'));
         $('ctaBtn2')?.addEventListener('click', () => handleCTAClick('save'));
-
-        // Condition descriptions
-        const conditionDescriptions = {
-            'Melanoma': 'Most serious form of skin cancer. Highly treatable when caught early.',
-            'Basal Cell Carcinoma': 'Most common skin cancer. Slow-growing, rarely spreads.',
-            'Squamous Cell Carcinoma': 'Second most common skin cancer. Treatable if detected early.',
-            'Actinic Keratosis': 'Pre-cancerous spots. Can develop into cancer if untreated.',
-            'Seborrheic Keratosis': 'Non-cancerous growth. Usually harmless.',
-            'Nevus': 'Common skin growth. Usually benign.',
-            'Dermatofibroma': 'Harmless skin growth. No treatment needed unless bothersome.'
-        };
 
         // ── File handling ──
         async function handleFile(file) {
