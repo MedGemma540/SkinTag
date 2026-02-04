@@ -153,6 +153,7 @@ export function WebcamCapture({ onCapture, onClose }: WebcamCaptureProps) {
                   playsInline
                   muted
                   className="max-w-full max-h-[70vh] rounded-lg"
+                  style={{ transform: 'scaleX(-1)' }}
                 />
 
                 {isReady && videoRef.current && metrics.landmarks.length > 0 && (
