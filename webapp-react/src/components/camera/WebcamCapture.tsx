@@ -92,11 +92,43 @@ export function WebcamCapture({ onCapture, onClose }: WebcamCaptureProps) {
 
     const video = videoRef.current
     const canvas = document.createElement('canvas')
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
+
+    // Calculate circle area in video coordinates
+    const displayWidth = video.clientWidth
+    const displayHeight = video.clientHeight
+
+    // Circle is 256px (16rem) in the center of the display
+    const circleSize = 256
+    const circleRadius = circleSize / 2
+
+    // Convert circle position from display to video coordinates
+    const scaleX = video.videoWidth / displayWidth
+    const scaleY = video.videoHeight / displayHeight
+
+    // Center position in video coordinates
+    const centerX = video.videoWidth / 2
+    const centerY = video.videoHeight / 2
+
+    // Radius in video coordinates (use smaller scale to ensure it fits)
+    const radiusInVideo = circleRadius * Math.min(scaleX, scaleY)
+
+    // Crop to square that fits in circle
+    const cropSize = radiusInVideo * 2
+    const cropX = centerX - radiusInVideo
+    const cropY = centerY - radiusInVideo
+
+    // Set canvas to crop size
+    canvas.width = cropSize
+    canvas.height = cropSize
 
     const ctx = canvas.getContext('2d')!
-    ctx.drawImage(video, 0, 0)
+
+    // Draw cropped area
+    ctx.drawImage(
+      video,
+      cropX, cropY, cropSize, cropSize,  // Source rectangle
+      0, 0, cropSize, cropSize            // Destination rectangle
+    )
 
     canvas.toBlob((blob) => {
       if (blob) {
