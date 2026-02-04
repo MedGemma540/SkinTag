@@ -37,7 +37,7 @@ jobs:
           cp -r webapp/* dist/
 
           # Configure API URL from workflow input
-          API_URL="${{ github.event.inputs.api_url || secrets.API_URL || '' }}"
+          API_URL='${{ github.event.inputs.api_url || secrets.API_URL || '' }}'
 
           # Replace placeholder directly in index.html
           if [ -f dist/index.html ]; then
