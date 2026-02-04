@@ -1,6 +1,6 @@
 import { Toaster } from 'sonner'
 import { AppProvider, useAppContext } from '@/contexts/AppContext'
-import { ThemeProvider } from '@/contexts/ThemeContext'
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext'
 import { useImageValidation } from '@/hooks/useImageValidation'
 import { useAnalysis } from '@/hooks/useAnalysis'
 import { Header } from '@/components/layout/Header'
@@ -18,6 +18,7 @@ import { Results } from '@/components/results/Results'
 
 function AppContent() {
   const { state, setSelectedFile, clearImage, setShowResults, setShowCropper } = useAppContext()
+  const { theme } = useTheme()
   const { validateImage } = useImageValidation()
   const { analyze } = useAnalysis()
 
@@ -123,9 +124,11 @@ function AppContent() {
 
       <Toaster
         position="top-center"
+        theme={theme}
         toastOptions={{
           style: {
             background: 'var(--color-surface)',
+            color: 'var(--color-text)',
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius)',
             boxShadow: 'var(--shadow-lg)',
