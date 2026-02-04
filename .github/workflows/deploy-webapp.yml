@@ -32,10 +32,11 @@ jobs:
       - name: Fetch git notes
         run: |
           git fetch origin refs/notes/commits:refs/notes/commits || true
-          API_URL=$(git notes show HEAD 2>/dev/null || echo "")
+          FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
+          API_URL=$(git notes show $FIRST_COMMIT 2>/dev/null || echo "")
           echo "API_URL_FROM_NOTES=$API_URL" >> $GITHUB_ENV
           if [ -n "$API_URL" ]; then
-            echo "✓ Found API URL in notes: $API_URL"
+            echo "✓ Found API URL in notes on initial commit: $API_URL"
           fi
 
       - name: Setup Node
