@@ -260,12 +260,12 @@ export function useComprehensiveValidation() {
       issues.push('Not enough skin visible')
     }
 
-    // Blur check (relaxed thresholds)
-    if (quality.blur < 20) {
-      score -= 30
+    // Blur check (very relaxed - dermatoscopic images have subtle edges)
+    if (quality.blur < 10) {
+      score -= 20
       issues.push('Image is blurry')
-    } else if (quality.blur < 40) {
-      score -= 10
+    } else if (quality.blur < 15) {
+      score -= 5
       issues.push('Could be sharper')
     }
 
