@@ -24,6 +24,7 @@ jobs:
     permissions:
       actions: write
       contents: write
+      variables: write
 
     steps:
       - uses: actions/checkout@v4
@@ -133,11 +134,17 @@ jobs:
           echo "TUNNEL_URL=$TUNNEL_URL" >> $GITHUB_ENV
           echo "✓ Tunnel URL: $TUNNEL_URL"
 
+      - name: Update repository variable with API URL
+        if: env.TUNNEL_URL != ''
+        run: |
+          gh variable set ACTIVE_API_URL --body "${{ env.TUNNEL_URL }}"
+          echo "✓ Updated ACTIVE_API_URL variable"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Trigger frontend deployment with API URL
         if: env.TUNNEL_URL != ''
         run: |
-          # Trigger deploy-webapp workflow with the tunnel URL
-          # No git commits - URL passed as workflow input
           gh workflow run deploy-webapp.yml \
             --raw-field api_url="${{ env.TUNNEL_URL }}"
         env:
@@ -167,7 +174,9 @@ jobs:
           APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
         run: |
           cleanup() {
+            echo "Cleaning up..."
             kill $(cat server.pid) 2>/dev/null || true
+            gh variable delete ACTIVE_API_URL 2>/dev/null || echo "Variable already cleared"
             exit 0
           }
           trap cleanup SIGTERM SIGINT
