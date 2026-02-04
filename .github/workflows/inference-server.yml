@@ -138,9 +138,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin refs/notes/commits:refs/notes/commits || true
           FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
           git notes add -f -m "${{ env.TUNNEL_URL }}" $FIRST_COMMIT
-          git push -f origin refs/notes/commits
+          git push origin refs/notes/commits
           echo "✓ Stored URL in git notes on initial commit: $FIRST_COMMIT"
 
       - name: Trigger frontend deployment with API URL
@@ -177,9 +178,10 @@ jobs:
           cleanup() {
             echo "Cleaning up..."
             kill $(cat server.pid) 2>/dev/null || true
+            git fetch origin refs/notes/commits:refs/notes/commits 2>/dev/null || true
             FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
             git notes remove $FIRST_COMMIT 2>/dev/null || true
-            git push -f origin refs/notes/commits 2>/dev/null || true
+            git push origin refs/notes/commits 2>/dev/null || true
             exit 0
           }
           trap cleanup SIGTERM SIGINT
