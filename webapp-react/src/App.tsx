@@ -9,7 +9,6 @@ import { useAnalysisHistory } from '@/hooks/useAnalysisHistory'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { BottomNav } from '@/components/layout/BottomNav'
-import { DisclaimerBanner } from '@/components/layout/DisclaimerBanner'
 import { OnboardingModal } from '@/components/layout/OnboardingModal'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { UploadZone } from '@/components/upload/UploadZone'
@@ -120,10 +119,6 @@ function AppContent() {
             <HistoryView onClose={() => setCurrentView('upload')} />
           ) : (
             <>
-              <div className="mb-6">
-                <DisclaimerBanner />
-              </div>
-
               {!state.selectedFile && (
                 <div className="space-y-4">
                   <UploadZone onFileSelect={handleFileSelect} />
