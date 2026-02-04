@@ -1,17 +1,19 @@
 export function Header() {
   return (
-    <header className="flex flex-col items-center gap-3 pt-8 pb-6">
-      <h1 className="text-[32px] sm:text-[40px] leading-[1.1] tracking-tight" style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic' }}>
-        SkinTag
-      </h1>
-      <p className="text-[14px] sm:text-[15px] text-[var(--color-text-secondary)] text-center max-w-md px-4">
-        Evaluate your skin lesion risk with advanced AI technology
-      </p>
-      <div className="flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-[var(--color-surface)] border text-[12px] sm:text-[13px] text-[var(--color-text-muted)]">
-        <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-green)]" />
-        <span className="hidden xs:inline">Trained on clinical dermoscopy images</span>
-        <span className="inline xs:hidden">Clinical training data</span>
+    <header className="flex flex-col items-center gap-2 pt-6 pb-4">
+      <div className="flex items-center gap-2 flex-wrap justify-center">
+        <h1 className="text-[28px] sm:text-[32px] leading-[1.1] tracking-tight" style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic' }}>
+          SkinTag
+        </h1>
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[var(--color-surface)] border text-[11px] text-[var(--color-text-muted)]">
+          <div className="w-1 h-1 rounded-full bg-[var(--color-green)]" />
+          <span className="hidden sm:inline">Clinical AI</span>
+          <span className="inline sm:hidden">AI</span>
+        </div>
       </div>
+      <p className="text-[13px] sm:text-[14px] text-[var(--color-text-secondary)] text-center max-w-md px-4">
+        AI-powered skin lesion risk assessment
+      </p>
     </header>
   )
 }
