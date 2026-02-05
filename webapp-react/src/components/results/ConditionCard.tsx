@@ -11,13 +11,19 @@ interface ConditionCardProps {
 }
 
 const conditionDescriptions: Record<string, string> = {
-  'actinic keratosis': 'A rough, scaly patch caused by sun damage that may develop into skin cancer',
-  'basal cell carcinoma': 'The most common form of skin cancer, rarely spreads but should be treated',
-  'benign keratosis': 'A harmless skin growth, often age-related',
-  'dermatofibroma': 'A common benign fibrous nodule, usually harmless',
   'melanoma': 'The most serious type of skin cancer that can spread to other organs',
+  'basal cell carcinoma': 'The most common form of skin cancer, rarely spreads but should be treated',
+  'squamous cell carcinoma': 'A common skin cancer from sun-damaged cells, treatable when caught early',
+  'actinic keratosis': 'A rough, scaly patch caused by sun damage that may develop into skin cancer',
+  'melanocytic nevus': 'A common mole, typically benign',
+  'seborrheic keratosis': 'A harmless waxy skin growth, often age-related',
+  'dermatofibroma': 'A common benign fibrous nodule, usually harmless',
+  'vascular lesion': 'Blood vessel abnormality in the skin, usually benign',
+  'non-neoplastic': 'Inflammatory or reactive skin condition, not a tumor',
+  'other/unknown': 'Unclassified lesion -- consult a dermatologist for evaluation',
+  // Legacy aliases
+  'benign keratosis': 'A harmless skin growth, often age-related',
   'nevus': 'A common mole, typically benign',
-  'vascular lesion': 'Blood vessel abnormality in the skin, usually benign'
 }
 
 export function ConditionCard({ topCondition, conditions }: ConditionCardProps) {
