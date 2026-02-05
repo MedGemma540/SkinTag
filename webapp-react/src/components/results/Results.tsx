@@ -2,6 +2,7 @@ import type { AnalysisResult } from '@/types'
 import { TierCard } from './TierCard'
 import { RiskDisplay } from './RiskDisplay'
 import { ABCDEGrid } from './ABCDEGrid'
+import { TriageCategoryCard } from './TriageCategoryCard'
 import { ConditionCard } from './ConditionCard'
 import { BinaryBarsCard } from './BinaryBarsCard'
 import { CTAActions } from './CTAActions'
@@ -43,6 +44,12 @@ export function Results({ results, onAnalyzeAnother }: ResultsProps) {
             tier={results.urgency_tier}
           />
         </div>
+
+        {results.triage_categories && (
+          <div className="result-item">
+            <TriageCategoryCard categories={results.triage_categories} />
+          </div>
+        )}
 
         <div className="result-item">
           <ABCDEGrid />
