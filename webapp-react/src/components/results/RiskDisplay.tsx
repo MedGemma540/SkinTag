@@ -34,7 +34,7 @@ export function RiskDisplay({ score, tier }: RiskDisplayProps) {
           {animatedScore}%
         </div>
         <div className="text-[15px] sm:text-[17px] text-[var(--color-text-muted)] pb-1 sm:pb-2">
-          melanoma risk
+          cancer risk
         </div>
       </div>
       <div className="h-2 bg-[var(--color-surface-alt)] rounded-full overflow-hidden">

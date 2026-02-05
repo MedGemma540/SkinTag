@@ -1,3 +1,8 @@
+export interface TriageCategoryInfo {
+  label: string
+  probability: number
+}
+
 export interface AnalysisResult {
   risk_score: number
   urgency_tier: 'low' | 'moderate' | 'high'
@@ -13,6 +18,11 @@ export interface AnalysisResult {
     condition: string
     probability: number
   }>
+  triage_categories?: {
+    malignant: TriageCategoryInfo
+    inflammatory: TriageCategoryInfo
+    benign: TriageCategoryInfo
+  }
 }
 
 export interface AppState {
