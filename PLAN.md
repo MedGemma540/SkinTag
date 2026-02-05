@@ -770,13 +770,14 @@ Augmentation pipeline simulating realistic smartphone capture conditions for imp
 
 ## Phase 3: Retraining and Enhancement (Planned)
 
-### 3A. Standalone Retraining Pipeline
+### 3A. Standalone Retraining Pipeline (Completed 2026-02-05)
 
 A comprehensive retraining script (`scripts/full_retraining_pipeline.py`) that:
 - Runs completely standalone after initial setup (no Claude Code needed)
 - Never overwrites existing models (versioned output directories)
 - Trains multiple classifier types for comparison
 - Demonstrates fine-tuning improvement over frozen embeddings
+- Includes SigLIP fine-tuning with field condition augmentations (`--finetune-siglip`)
 
 #### Classifier Types Trained
 
@@ -787,7 +788,7 @@ A comprehensive retraining script (`scripts/full_retraining_pipeline.py`) that:
 | MLP | 2-layer neural network | Flexible capacity |
 | Hierarchical | Binary head + condition head | Multi-task learning |
 
-#### Fine-tuning Comparison
+#### Fine-tuning Comparison (Full Pipeline)
 
 The pipeline compares frozen vs. fine-tuned SigLIP embeddings to demonstrate the value of domain adaptation:
 
@@ -797,6 +798,56 @@ The pipeline compares frozen vs. fine-tuned SigLIP embeddings to demonstrate the
 | Fine-tuned SigLIP | 96.8% | 0.992 | +1.1% |
 
 **Key finding**: Fine-tuning the last 4 transformer layers improves downstream classifier performance, especially under image distortions.
+
+#### Retraining Pipeline Results (2026-02-04 Run)
+
+Full SigLIP fine-tuning with field condition augmentations completed on 47,277 samples:
+
+| Model | Accuracy | F1 | AUC |
+|-------|----------|----|-----|
+| XGBoost (frozen embeddings) | 88.2% | 0.794 | 0.916 |
+| **XGBoost (fine-tuned embeddings)** | **92.0%** | **0.866** | **0.960** |
+| MLP (fine-tuned embeddings) | 91.2% | 0.856 | 0.945 |
+| XGBoost condition 10-class (fine-tuned) | 71.2% | 0.554 | 0.935 |
+
+**Fine-tuning improvement: +4.8% AUC** over frozen embeddings on the same evaluation split.
+
+**Clinical Thresholds (XGBoost on fine-tuned embeddings):**
+
+| Sensitivity | Threshold | Specificity |
+|-------------|-----------|-------------|
+| 99% | 0.001 | 47.6% |
+| **95%** | **0.034** | **82.5%** |
+| 90% | 0.140 | 89.0% |
+| 85% | 0.291 | 92.1% |
+
+**SigLIP Fine-tuning Configuration:**
+- Model: google/siglip-so400m-patch14-384 (878M params)
+- Unfrozen layers: Last 4 vision encoder layers (~7% trainable)
+- Best fine-tuning head AUC: 0.957
+- Output directory: `results/cache/clinical_v20260204_161741/`
+
+#### Bug Fix: WeightedRandomSampler + Embedding Extraction
+
+A critical bug was discovered and fixed where `WeightedRandomSampler` randomized the iteration order during train embedding extraction. Since the sampler samples with replacement in random order, the extracted embeddings could not be aligned with metadata labels, producing random-chance AUC (0.50).
+
+**Fix**: A separate sequential `DataLoader` (no sampler, `shuffle=False`) is now created specifically for embedding extraction, while the sampler-based loader remains for training. See `scripts/full_retraining_pipeline.py` line ~730.
+
+#### Running the Retraining Pipeline
+
+```bash
+# Activate conda environment
+conda activate skintag
+
+# Full retraining with SigLIP fine-tuning (15 epochs, ~4-6 hours on RTX 4070 Ti)
+python scripts/full_retraining_pipeline.py --finetune-siglip --epochs 15
+
+# Quick test (2 epochs)
+python scripts/full_retraining_pipeline.py --finetune-siglip --epochs 2 --quick
+
+# Skip mobile training
+python scripts/full_retraining_pipeline.py --finetune-siglip --skip-mobile
+```
 
 ### 3B. Hierarchical Multi-Task Fine-Tuning (Recommended)
 

@@ -176,6 +176,20 @@ To improve robustness to real-world smartphone capture conditions, we apply augm
 
 We apply these augmentations with probability 0.3--0.5 during training, with severity levels (light, moderate, heavy) configurable for different deployment environments.
 
+\subsection{Standalone Retraining Pipeline}
+
+To facilitate reproducibility and iterative improvement, we developed a standalone retraining pipeline (\texttt{scripts/full\_retraining\_pipeline.py}) that performs end-to-end SigLIP fine-tuning with field condition augmentations. The pipeline:
+
+\begin{enumerate}
+    \item Loads all five datasets with reconstructed image paths
+    \item Fine-tunes SigLIP with unfrozen last 4 transformer layers using differential learning rates (backbone: $10^{-5}$, head: $10^{-4}$) and gradient accumulation (4 steps)
+    \item Extracts embeddings using a \textbf{sequential} DataLoader (no sampler) to preserve alignment with metadata labels
+    \item Trains XGBoost, MLP, and hierarchical classifiers on both frozen and fine-tuned embeddings
+    \item Reports clinical sensitivity/specificity thresholds
+\end{enumerate}
+
+A critical implementation detail: \texttt{WeightedRandomSampler}, used during training for class-balanced batches, randomizes iteration order with replacement. Extracting embeddings through a sampler-based DataLoader produces randomly ordered embeddings that cannot be aligned with labels. We discovered this when fine-tuned embedding classifiers produced random-chance AUC (0.50) despite the fine-tuned model achieving AUC 0.957 on its own classification head. The fix is straightforward: create a separate sequential DataLoader (no sampler, \texttt{shuffle=False}) exclusively for embedding extraction.
+
 \subsection{Clinical Triage System}
 
 Rather than outputting raw probabilities, we provide clinically actionable triage tiers designed with dermatologist input \citep{janda2020can}:
@@ -339,6 +353,28 @@ Classification head only & 1.1 MB & --- \\
 \end{table}
 
 For web deployment with GPU, the full fine-tuned SigLIP provides the simplest inference pipeline at 48ms per image. For CPU-only or edge deployment, pre-extracting embeddings (16ms GPU) then running XGBoost (0.6ms CPU) achieves comparable accuracy with lower total latency when batching is possible. The 1.4 MB XGBoost model is practical for mobile deployment when paired with a compressed vision backbone.
+
+\subsection{Retraining with Field Augmentations}
+
+To validate that field condition augmentations improve robustness without degrading accuracy, we ran the standalone retraining pipeline with full SigLIP fine-tuning. Table~\ref{tab:retraining} compares classifiers trained on frozen vs.\ fine-tuned embeddings using the same evaluation split.
+
+\begin{table}[h]
+\centering
+\caption{Retraining pipeline results (fine-tuned SigLIP with field augmentations). Evaluation on held-out test split.}
+\label{tab:retraining}
+\begin{tabular}{llccc}
+\toprule
+\textbf{Model} & \textbf{Emb. Type} & \textbf{Accuracy} & \textbf{F1} & \textbf{AUC} \\
+\midrule
+XGBoost & Frozen & 0.882 & 0.794 & 0.916 \\
+\textbf{XGBoost} & \textbf{Fine-tuned} & \textbf{0.920} & \textbf{0.866} & \textbf{0.960} \\
+MLP & Fine-tuned & 0.912 & 0.856 & 0.945 \\
+XGBoost (10-class) & Fine-tuned & 0.712 & 0.554 & 0.935 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Fine-tuning provides a \textbf{+4.8\% AUC improvement} over frozen embeddings. At the clinically important 95\% sensitivity operating point, the fine-tuned XGBoost classifier achieves 82.5\% specificity (threshold = 0.034), suitable for screening where missing malignancies is the primary concern.
 
 \subsection{Condition Classification}
 
