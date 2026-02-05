@@ -133,6 +133,7 @@ async def load_models():
                 from src.model.deep_classifier import EndToEndClassifier
                 _state["e2e_model"] = EndToEndClassifier.load_for_inference(str(e2e_dir), device=device)
                 _state["inference_mode"] = "e2e"
+                _state["extractor"] = EmbeddingExtractor(device=device)
                 print(f"Loaded fine-tuned end-to-end model from {e2e_dir}")
             except Exception as e:
                 print(f"Failed to load e2e model: {e}, falling back to embedding+head")
@@ -204,35 +205,47 @@ async def analyze_image(file: UploadFile = File(...)):
 
     mal_prob = float(proba[0, 1]) if proba.ndim == 2 else float(proba[0])
 
-    # Triage assessment
-    result = _state["triage"].assess(mal_prob)
-
     response = {
-        "risk_score": round(result.risk_score, 4),
-        "urgency_tier": result.urgency_tier,
-        "recommendation": result.recommendation,
-        "confidence": result.confidence,
-        "disclaimer": result.disclaimer,
         "probabilities": {
             "benign": round(1 - mal_prob, 4),
             "malignant": round(mal_prob, 4),
         },
     }
 
-    # Condition estimation (10-class) - optional, failures are silently ignored
+    # Condition estimation (10-class) - adds triage_categories to response
     _add_condition_estimate(response, image, embedding)
+
+    # Determine dominant triage category for context-aware recommendations
+    dominant_category = None
+    if "triage_categories" in response:
+        cats = response["triage_categories"]
+        dominant_category = max(cats, key=lambda k: cats[k]["probability"])
+
+    # Triage assessment with category context
+    result = _state["triage"].assess(mal_prob, dominant_category=dominant_category)
+
+    response.update({
+        "risk_score": round(result.risk_score, 4),
+        "urgency_tier": result.urgency_tier,
+        "recommendation": result.recommendation,
+        "confidence": result.confidence,
+        "disclaimer": result.disclaimer,
+    })
 
     return JSONResponse(response)
 
 
 def _add_condition_estimate(response: dict, image: Image.Image, embedding) -> None:
-    """Add condition estimate to response if classifier is available."""
+    """Add condition estimate and 3-category triage to response if classifier is available."""
     cond_clf = _state.get("condition_classifier")
     if cond_clf is None:
         return
 
     try:
-        from src.data.taxonomy import CONDITION_NAMES, Condition
+        from src.data.taxonomy import (
+            CONDITION_NAMES, Condition, CONDITION_TRIAGE,
+            TriageCategory, TRIAGE_CATEGORY_NAMES,
+        )
 
         # Get embedding for condition classifier
         if embedding is not None:
@@ -246,6 +259,7 @@ def _add_condition_estimate(response: dict, image: Image.Image, embedding) -> No
         if cond_proba.ndim != 2:
             return
 
+        # Top-3 individual conditions
         top_indices = np.argsort(cond_proba[0])[::-1][:3]
         condition_probs = []
         for idx in top_indices:
@@ -258,6 +272,46 @@ def _add_condition_estimate(response: dict, image: Image.Image, embedding) -> No
         top_cond = Condition(int(top_indices[0]))
         response["condition_estimate"] = CONDITION_NAMES.get(top_cond, f"Class {top_indices[0]}")
         response["condition_probabilities"] = condition_probs
+
+        # Aggregate into 3 triage categories, anchored to the binary model's
+        # malignancy probability (more accurate than the condition classifier).
+        # The condition classifier determines the split between inflammatory
+        # and benign within the non-malignant portion.
+        mal_prob_binary = response["probabilities"]["malignant"]
+        non_mal = 1.0 - mal_prob_binary
+
+        # Get raw inflammatory vs benign split from condition classifier
+        raw_inflammatory = 0.0
+        raw_benign = 0.0
+        for idx in range(cond_proba.shape[1]):
+            cond_enum = Condition(int(idx))
+            cat = CONDITION_TRIAGE.get(cond_enum, TriageCategory.BENIGN)
+            p = float(cond_proba[0, idx])
+            if cat == TriageCategory.INFLAMMATORY:
+                raw_inflammatory += p
+            elif cat == TriageCategory.BENIGN:
+                raw_benign += p
+
+        # Distribute non-malignant portion proportionally
+        raw_non_mal = raw_inflammatory + raw_benign
+        if raw_non_mal > 0:
+            inflammatory_frac = raw_inflammatory / raw_non_mal
+        else:
+            inflammatory_frac = 0.0
+
+        category_final = {
+            TriageCategory.MALIGNANT: mal_prob_binary,
+            TriageCategory.INFLAMMATORY: non_mal * inflammatory_frac,
+            TriageCategory.BENIGN: non_mal * (1.0 - inflammatory_frac),
+        }
+
+        response["triage_categories"] = {
+            cat: {
+                "label": TRIAGE_CATEGORY_NAMES[cat],
+                "probability": round(prob, 4),
+            }
+            for cat, prob in category_final.items()
+        }
     except Exception:
         pass
 

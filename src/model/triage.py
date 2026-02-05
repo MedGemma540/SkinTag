@@ -35,10 +35,10 @@ class TriageSystem:
 
     DEFAULT_RECOMMENDATIONS = {
         "low": (
-            "Low concern. This lesion appears to have characteristics consistent with "
-            "benign skin features. Continue routine self-monitoring using the ABCDE method "
-            "(Asymmetry, Border, Color, Diameter, Evolution). Photograph the area monthly "
-            "to track any changes."
+            "Lower malignancy risk. This lesion has features more consistent with benign "
+            "or non-cancerous skin conditions. We still recommend consulting a board-certified "
+            "dermatologist for a professional evaluation. Monitor using the ABCDE method "
+            "(Asymmetry, Border, Color, Diameter, Evolution) and photograph monthly."
         ),
         "moderate": (
             "Moderate concern. This lesion has some features that warrant professional review. "
@@ -50,6 +50,22 @@ class TriageSystem:
             "High concern. This lesion has characteristics that should be evaluated promptly. "
             "Schedule a dermatology appointment as soon as possible, ideally within 1-2 weeks. "
             "Do not delay seeking care. Early detection significantly improves outcomes."
+        ),
+    }
+
+    # Context-aware recommendations when triage category is known
+    CATEGORY_RECOMMENDATIONS = {
+        "inflammatory": (
+            "This lesion has features consistent with an inflammatory or reactive skin condition. "
+            "While less likely to be cancerous, inflammatory conditions can cause discomfort and "
+            "may require treatment. We recommend seeing a dermatologist for proper diagnosis "
+            "and management. Some inflammatory conditions can mimic or mask more serious lesions."
+        ),
+        "benign": (
+            "This lesion has features most consistent with a benign skin growth. While unlikely "
+            "to be harmful, we recommend confirming this with a dermatologist, especially if the "
+            "lesion is new, changing, or causing concern. Regular skin checks are important "
+            "for early detection of any changes."
         ),
     }
 
@@ -75,11 +91,13 @@ class TriageSystem:
         }
         self.disclaimer = config.get("disclaimer", self.DEFAULT_DISCLAIMER)
 
-    def assess(self, probability: float) -> TriageResult:
+    def assess(self, probability: float, dominant_category: str = None) -> TriageResult:
         """Assess a single malignancy probability score.
 
         Args:
             probability: Model output probability of malignancy (0.0 to 1.0)
+            dominant_category: Optional triage category ("malignant", "inflammatory",
+                "benign") to provide context-aware recommendations.
 
         Returns:
             TriageResult with urgency tier, recommendation, confidence, disclaimer
@@ -106,10 +124,21 @@ class TriageSystem:
         else:
             confidence = "low"
 
+        # Use category-aware recommendation for low/moderate tiers
+        recommendation = self.recommendations[tier]
+        if dominant_category in self.CATEGORY_RECOMMENDATIONS:
+            if tier in ("low", "moderate"):
+                recommendation = self.CATEGORY_RECOMMENDATIONS[dominant_category]
+
+        # Inflammatory conditions still need medical attention -- don't show green "Low Risk"
+        if tier == "low" and dominant_category == "inflammatory":
+            tier = "moderate"
+            confidence = "moderate"
+
         return TriageResult(
             risk_score=probability,
             urgency_tier=tier,
-            recommendation=self.recommendations[tier],
+            recommendation=recommendation,
             confidence=confidence,
             disclaimer=self.disclaimer,
         )
