@@ -19,7 +19,7 @@ export function Results({ results, onAnalyzeAnother }: ResultsProps) {
 
   return (
     <div className="space-y-6">
-      <div id="results-capture" className="space-y-6">
+      <div className="space-y-6">
         {state.previewUrl && (
           <div className="flex justify-center result-item">
             <img

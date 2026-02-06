@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription, VisuallyHidden }
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Camera, CheckCircle, Sun, Image as ImageIcon } from 'lucide-react'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 const ONBOARDING_KEY = 'skintag-onboarding-seen'
 
@@ -46,12 +47,6 @@ export function OnboardingModal() {
     setIsOpen(false)
   }
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      handleClose()
-    }
-  }
-
   const handleNext = () => {
     if (currentStep < tips.length - 1) {
       setCurrentStep(currentStep + 1)
@@ -60,20 +55,9 @@ export function OnboardingModal() {
     }
   }
 
-  const handleSkip = () => {
-    handleClose()
-  }
-
   const currentTip = tips[currentStep]
   const Icon = currentTip.icon
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  const isMobile = useIsMobile()
 
   const content = (
     <div className="flex flex-col">
@@ -107,7 +91,7 @@ export function OnboardingModal() {
       <div className="flex gap-3 px-4 pb-4">
         {currentStep < tips.length - 1 ? (
           <>
-            <Button onClick={handleSkip} variant="ghost" className="flex-1">
+            <Button onClick={handleClose} variant="ghost" className="flex-1">
               Skip
             </Button>
             <Button onClick={handleNext} className="flex-1">
@@ -125,7 +109,7 @@ export function OnboardingModal() {
 
   if (isMobile) {
     return (
-      <Sheet open={isOpen} onOpenChange={handleOpenChange}>
+      <Sheet open={isOpen} onOpenChange={(open) => { if (!open) handleClose() }}>
         <SheetContent>
           <div className="h-full flex flex-col justify-center">
             {content}
@@ -136,7 +120,7 @@ export function OnboardingModal() {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose() }}>
       <DialogContent className="max-w-md">
         <VisuallyHidden>
           <DialogTitle>{currentTip.title}</DialogTitle>

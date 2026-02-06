@@ -10,6 +10,8 @@ interface CTAActionsProps {
   onAnalyzeAnother?: () => void
 }
 
+const FIND_A_DERM_URL = 'https://find-a-derm.aad.org/search?searchTerm=&searchLocation='
+
 const tierActions = {
   low: {
     primary: 'Learn More',
@@ -17,29 +19,29 @@ const tierActions = {
   },
   moderate: {
     primary: 'Find a Dermatologist',
-    url: 'https://find-a-derm.aad.org/search?searchTerm=&searchLocation='
+    url: FIND_A_DERM_URL
   },
   high: {
     primary: 'Find a Dermatologist',
-    url: 'https://find-a-derm.aad.org/search?searchTerm=&searchLocation='
+    url: FIND_A_DERM_URL
+  }
+}
+
+async function getZipCode(lat: number, lon: number): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
+      { headers: { 'User-Agent': 'SkinTag-App' } }
+    )
+    const data = await response.json()
+    return data.address?.postcode || null
+  } catch {
+    return null
   }
 }
 
 export function CTAActions({ tier, results, onAnalyzeAnother }: CTAActionsProps) {
   const actions = tierActions[tier]
-
-  const getZipCode = async (lat: number, lon: number): Promise<string | null> => {
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
-        { headers: { 'User-Agent': 'SkinTag-App' } }
-      )
-      const data = await response.json()
-      return data.address?.postcode || null
-    } catch {
-      return null
-    }
-  }
 
   const handleClick = async (url: string) => {
     if (url.includes('find-a-derm.aad.org')) {
@@ -53,7 +55,7 @@ export function CTAActions({ tier, results, onAnalyzeAnother }: CTAActionsProps)
           window.open(url.replace('searchLocation=', `searchLocation=${zipCode}`), '_blank', 'noopener,noreferrer')
           return
         }
-      } catch (error) {
+      } catch {
         console.log('Location access denied or failed, using default location')
       }
     }
@@ -66,17 +68,14 @@ export function CTAActions({ tier, results, onAnalyzeAnother }: CTAActionsProps)
       const text = formatResultsAsText(results)
       copyResultsToClipboard(text)
       toast.success('Results copied to clipboard')
-    } catch (error) {
+    } catch {
       toast.error('Failed to copy to clipboard')
     }
   }
 
   const handleShare = () => {
     const text = formatResultsAsText(results)
-    const shareData = {
-      title: 'SkinTag Analysis Results',
-      text: text,
-    }
+    const shareData = { title: 'SkinTag Analysis Results', text }
 
     if (navigator.share && navigator.canShare(shareData)) {
       navigator.share(shareData)

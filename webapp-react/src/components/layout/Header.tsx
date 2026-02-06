@@ -1,18 +1,12 @@
 import { Info } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription, VisuallyHidden } from '@/components/ui/dialog'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 export function Header() {
   const [showInfo, setShowInfo] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  const isMobile = useIsMobile()
 
   return (
     <>
@@ -89,38 +83,21 @@ function AboutContent() {
       <div>
         <h3 className="text-[17px] font-semibold mb-[var(--space-3)]">How It Works</h3>
         <div className="flex flex-col gap-[var(--space-3)]">
-          <div className="flex gap-[var(--space-2)]">
-            <div className="w-6 h-6 rounded-full bg-[var(--color-accent-warm)] text-[var(--color-surface)] flex items-center justify-center flex-shrink-0 text-[13px] font-medium mt-0.5">
-              1
+          {[
+            'Upload or capture a photo of your skin lesion',
+            'AI analyzes the image for melanoma risk',
+            'Receive risk assessment and recommendations',
+            'History saved locally for tracking changes',
+          ].map((step, i) => (
+            <div key={i} className="flex gap-[var(--space-2)]">
+              <div className="w-6 h-6 rounded-full bg-[var(--color-accent-warm)] text-[var(--color-surface)] flex items-center justify-center flex-shrink-0 text-[13px] font-medium mt-0.5">
+                {i + 1}
+              </div>
+              <p className="text-[15px] text-[var(--color-text-secondary)] leading-relaxed">
+                {step}
+              </p>
             </div>
-            <p className="text-[15px] text-[var(--color-text-secondary)] leading-relaxed">
-              Upload or capture a photo of your skin lesion
-            </p>
-          </div>
-          <div className="flex gap-[var(--space-2)]">
-            <div className="w-6 h-6 rounded-full bg-[var(--color-accent-warm)] text-[var(--color-surface)] flex items-center justify-center flex-shrink-0 text-[13px] font-medium mt-0.5">
-              2
-            </div>
-            <p className="text-[15px] text-[var(--color-text-secondary)] leading-relaxed">
-              AI analyzes the image for melanoma risk
-            </p>
-          </div>
-          <div className="flex gap-[var(--space-2)]">
-            <div className="w-6 h-6 rounded-full bg-[var(--color-accent-warm)] text-[var(--color-surface)] flex items-center justify-center flex-shrink-0 text-[13px] font-medium mt-0.5">
-              3
-            </div>
-            <p className="text-[15px] text-[var(--color-text-secondary)] leading-relaxed">
-              Receive risk assessment and recommendations
-            </p>
-          </div>
-          <div className="flex gap-[var(--space-2)]">
-            <div className="w-6 h-6 rounded-full bg-[var(--color-accent-warm)] text-[var(--color-surface)] flex items-center justify-center flex-shrink-0 text-[13px] font-medium mt-0.5">
-              4
-            </div>
-            <p className="text-[15px] text-[var(--color-text-secondary)] leading-relaxed">
-              History saved locally for tracking changes
-            </p>
-          </div>
+          ))}
         </div>
       </div>
     </div>
