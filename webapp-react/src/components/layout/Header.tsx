@@ -16,6 +16,13 @@ export function Header() {
 
   return (
     <>
+      <button
+        onClick={() => setShowInfo(true)}
+        className="fixed top-4 left-4 z-50 w-10 h-10 rounded-full hover:bg-[var(--color-surface-alt)] flex items-center justify-center transition-all text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+        aria-label="About SkinTag"
+      >
+        <Info className="w-5 h-5" />
+      </button>
       <header className="relative w-full max-w-3xl mx-auto pt-[var(--space-4)] pb-[var(--space-3)] px-[var(--space-2)]">
         <div className="flex flex-col items-center">
           <h1 className="text-[40px] sm:text-[48px] leading-[1.1] tracking-tight mb-[var(--space-2)]" style={{ fontFamily: "'Instrument Serif', serif" }}>
@@ -24,14 +31,6 @@ export function Header() {
           <p className="text-[15px] sm:text-[17px] text-[var(--color-text-secondary)] text-center max-w-md">
             AI-powered skin lesion risk assessment
           </p>
-          <button
-            onClick={() => setShowInfo(true)}
-            className="mt-2 text-[13px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors flex items-center gap-1"
-            aria-label="About"
-          >
-            <Info className="w-3.5 h-3.5" />
-            <span>About</span>
-          </button>
         </div>
       </header>
 

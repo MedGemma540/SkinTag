@@ -46,6 +46,12 @@ export function OnboardingModal() {
     setIsOpen(false)
   }
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      handleClose()
+    }
+  }
+
   const handleNext = () => {
     if (currentStep < tips.length - 1) {
       setCurrentStep(currentStep + 1)
@@ -119,7 +125,7 @@ export function OnboardingModal() {
 
   if (isMobile) {
     return (
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      <Sheet open={isOpen} onOpenChange={handleOpenChange}>
         <SheetContent>
           <div className="h-full flex flex-col justify-center">
             {content}
@@ -130,7 +136,7 @@ export function OnboardingModal() {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md">
         <VisuallyHidden>
           <DialogTitle>{currentTip.title}</DialogTitle>

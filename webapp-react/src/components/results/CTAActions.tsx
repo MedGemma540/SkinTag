@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
-import { MapPin, Download, Copy, Upload } from 'lucide-react'
+import { MapPin, Copy, Upload, Share2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { downloadResultsAsImage, formatResultsAsText, copyResultsToClipboard } from '@/lib/downloadUtils'
+import { formatResultsAsText, copyResultsToClipboard } from '@/lib/downloadUtils'
 import type { AnalysisResult } from '@/types'
 
 interface CTAActionsProps {
@@ -12,35 +12,53 @@ interface CTAActionsProps {
 
 const tierActions = {
   low: {
-    primary: 'Track Over Time'
+    primary: 'Learn More',
+    url: 'https://www.aad.org/public/diseases/skin-cancer'
   },
   moderate: {
-    primary: 'Schedule Consultation'
+    primary: 'Find a Dermatologist',
+    url: 'https://find-a-derm.aad.org/search?searchTerm=&searchLocation='
   },
   high: {
-    primary: 'Book Dermatologist Visit'
+    primary: 'Find a Dermatologist',
+    url: 'https://find-a-derm.aad.org/search?searchTerm=&searchLocation='
   }
 }
 
 export function CTAActions({ tier, results, onAnalyzeAnother }: CTAActionsProps) {
   const actions = tierActions[tier]
 
-  const handleClick = (action: string) => {
-    toast.info('Feature coming soon!', {
-      description: `${action} will be available in a future update.`
-    })
+  const getZipCode = async (lat: number, lon: number): Promise<string | null> => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`,
+        { headers: { 'User-Agent': 'SkinTag-App' } }
+      )
+      const data = await response.json()
+      return data.address?.postcode || null
+    } catch {
+      return null
+    }
   }
 
-  const handleDownload = async () => {
-    try {
-      await downloadResultsAsImage('results-capture')
-      toast.success('Results saved as image')
-    } catch (error) {
-      console.error('Download error:', error)
-      toast.error('Failed to save image', {
-        description: error instanceof Error ? error.message : 'Unknown error'
-      })
+  const handleClick = async (url: string) => {
+    if (url.includes('find-a-derm.aad.org')) {
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+        })
+
+        const zipCode = await getZipCode(position.coords.latitude, position.coords.longitude)
+        if (zipCode) {
+          window.open(url.replace('searchLocation=', `searchLocation=${zipCode}`), '_blank', 'noopener,noreferrer')
+          return
+        }
+      } catch (error) {
+        console.log('Location access denied or failed, using default location')
+      }
     }
+
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   const handleCopy = () => {
@@ -53,10 +71,30 @@ export function CTAActions({ tier, results, onAnalyzeAnother }: CTAActionsProps)
     }
   }
 
+  const handleShare = () => {
+    const text = formatResultsAsText(results)
+    const shareData = {
+      title: 'SkinTag Analysis Results',
+      text: text,
+    }
+
+    if (navigator.share && navigator.canShare(shareData)) {
+      navigator.share(shareData)
+        .then(() => toast.success('Results shared'))
+        .catch(() => {
+          copyResultsToClipboard(text)
+          toast.success('Results copied to clipboard')
+        })
+    } else {
+      copyResultsToClipboard(text)
+      toast.success('Results copied - ready to share with doctor')
+    }
+  }
+
   return (
     <div className="space-y-3">
       <Button
-        onClick={() => handleClick(actions.primary)}
+        onClick={() => handleClick(actions.url)}
         className="w-full"
         size="lg"
       >
@@ -66,12 +104,12 @@ export function CTAActions({ tier, results, onAnalyzeAnother }: CTAActionsProps)
 
       <div className="grid grid-cols-2 gap-3">
         <Button
-          onClick={handleDownload}
+          onClick={handleShare}
           variant="outline"
           size="default"
         >
-          <Download className="w-4 h-4" />
-          Save Image
+          <Share2 className="w-4 h-4" />
+          Share
         </Button>
         <Button
           onClick={handleCopy}
@@ -79,7 +117,7 @@ export function CTAActions({ tier, results, onAnalyzeAnother }: CTAActionsProps)
           size="default"
         >
           <Copy className="w-4 h-4" />
-          Copy Text
+          Copy
         </Button>
       </div>
 
