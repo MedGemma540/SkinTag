@@ -1,3 +1,13 @@
+/**
+ * [Component/Module description]
+
+ * Development notes:
+ * - Developed with AI assistance (Claude/Anthropic)
+ * - Uses react-easy-crop: https://github.com/ValentinH/react-easy-crop
+ * - Canvas cropping logic from react-easy-crop examples
+
+ */
+
 import { useState, useCallback, useEffect } from 'react'
 import Cropper from 'react-easy-crop'
 import { Button } from '@/components/ui/button'

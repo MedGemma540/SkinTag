@@ -1,3 +1,12 @@
+/**
+ * [Component/Module description]
+
+ * Development notes:
+ * - Developed with AI assistance (Claude/Anthropic)
+ * - Core UX design and integration by SkinTag team
+
+ */
+
 import { useState, useRef } from 'react'
 import { Toaster } from 'sonner'
 import { toast } from 'sonner'

@@ -1,3 +1,13 @@
+/**
+ * [Component/Module description]
+
+ * Development notes:
+ * - Developed with AI assistance (Claude/Anthropic)
+ * - MediaPipe hand detection: https://developers.google.com/mediapipe/solutions/vision/hand_landmarker
+ * - getUserMedia API usage following MDN Web API documentation
+
+ */
+
 import { useEffect, useRef, useState } from 'react'
 import { Camera, X, AlertCircle, CheckCircle } from 'lucide-react'
 import { useRealtimeValidation } from '@/hooks/useRealtimeValidation'
