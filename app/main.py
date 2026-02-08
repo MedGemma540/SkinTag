@@ -20,7 +20,6 @@ import torch
 import numpy as np
 from PIL import Image
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -104,8 +103,7 @@ async def load_models():
                 _state["extractor"] = EmbeddingExtractor(device=device)
                 _state["inference_mode"] = "embedding+head"
 
-            # Load condition classifier — check co-downloaded Misc/ files first, then separate download
-            cond_loaded = False
+            # Load condition classifier -- check co-downloaded Misc/ files first, then separate download
             if _state["inference_mode"] == "e2e":
                 for cond_name in ["xgboost_finetuned_condition.pkl", "xgboost_finetuned_binary.pkl"]:
                     misc_cond = Path(model_dir) / "Misc" / cond_name
@@ -113,9 +111,8 @@ async def load_models():
                         with open(misc_cond, "rb") as f:
                             _state["condition_classifier"] = pickle.load(f)
                         print(f"✓ Loaded condition classifier: {misc_cond.name}")
-                        cond_loaded = True
                         break
-            if not cond_loaded:
+            if _state["condition_classifier"] is None:
                 try:
                     cond_path = download_model_from_hf(
                         repo_id=repo_id,
@@ -171,7 +168,7 @@ async def load_models():
             _state["inference_mode"] = "embedding+head"
             print(f"Embedding extractor ready (device={device})")
 
-        # Load condition classifier (10-class) — check v2 paths first
+        # Load condition classifier (10-class) -- check v2 paths first
         cond_candidates = [
             cache_dir / "finetuned_model" / "classifiers" / "xgboost_finetuned_condition.pkl",
             cache_dir / "finetuned_model" / "classifiers" / "xgboost_condition.pkl",
@@ -216,7 +213,7 @@ async def analyze_image(file: UploadFile = File(...)):
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid image file")
 
-    # Classify — use end-to-end model or embedding+head
+    # Classify -- use end-to-end model or embedding+head
     embedding = None
     if _state["inference_mode"] == "e2e":
         proba = _state["e2e_model"].predict_proba([image])
@@ -258,9 +255,8 @@ async def analyze_image(file: UploadFile = File(...)):
 
 def _add_condition_estimate(response: dict, image: Image.Image, embedding) -> None:
     """Add condition estimate and 3-category triage to response if classifier is available."""
-    cond_obj = _state.get("condition_classifier")
+    cond_obj = _state["condition_classifier"]
     if cond_obj is None:
-        print("Warning: condition_classifier not loaded, skipping triage_categories")
         return
 
     try:
@@ -283,9 +279,9 @@ def _add_condition_estimate(response: dict, image: Image.Image, embedding) -> No
         elif _state["e2e_model"] and hasattr(_state["e2e_model"], 'extract_embeddings'):
             emb = _state["e2e_model"].extract_embeddings([image])
             cond_input = emb.cpu().numpy() if emb is not None else None
-            if cond_input is None and _state.get("extractor"):
+            if cond_input is None and _state["extractor"]:
                 cond_input = _state["extractor"].extract([image]).numpy()
-        elif _state.get("extractor"):
+        elif _state["extractor"]:
             cond_input = _state["extractor"].extract([image]).numpy()
         else:
             return
@@ -355,8 +351,6 @@ def _add_condition_estimate(response: dict, image: Image.Image, embedding) -> No
         }
     except Exception as e:
         print(f"Warning: Failed to add condition estimate: {e}")
-        import traceback
-        traceback.print_exc()
 
 
 @app.get("/api/health")
@@ -371,21 +365,11 @@ async def health():
     }
 
 
-# Serve static files and frontend (only if directory exists)
-_static_dir = APP_DIR / "static"
-if _static_dir.is_dir():
-    app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
-
-
 @app.get("/", response_class=HTMLResponse)
 async def index():
     index_path = APP_DIR / "templates" / "index.html"
     if index_path.exists():
         return index_path.read_text()
-    # Fallback: serve from static
-    static_index = APP_DIR / "static" / "index.html"
-    if static_index.exists():
-        return static_index.read_text()
     return "<h1>SkinTag</h1><p>Frontend not found. Place index.html in app/templates/</p>"
 
 

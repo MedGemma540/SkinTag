@@ -115,6 +115,9 @@ data-pad-ufes:
 pipeline:
 	$(PYTHON_ENV) $(PYTHON) run_pipeline.py
 
+pipeline-quick:
+	$(PYTHON_ENV) $(PYTHON) run_pipeline.py --quick --no-app
+
 train:
 	$(PYTHON_ENV) $(PYTHON) scripts/train.py
 
@@ -123,6 +126,3 @@ train-all:
 
 train-multi:
 	$(PYTHON_ENV) $(PYTHON) scripts/train.py --multi-dataset --domain-balance --model all
-
-pipeline-quick:
-	$(PYTHON_ENV) $(PYTHON) run_pipeline.py --quick --no-app
