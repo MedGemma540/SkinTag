@@ -1,10 +1,10 @@
 /**
- * [Component/Module description]
-
+ * Main application component for SkinTag web interface.
+ * Handles image upload, analysis workflow, and results display.
+ *
  * Development notes:
  * - Developed with AI assistance (Claude/Anthropic)
  * - Core UX design and integration by SkinTag team
-
  */
 
 import { useState, useRef } from 'react'

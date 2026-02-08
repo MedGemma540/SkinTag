@@ -1,11 +1,11 @@
 /**
- * [Component/Module description]
-
+ * Real-time webcam capture with MediaPipe hand detection and image quality validation.
+ * Provides live feedback on distance, lighting, and hand positioning.
+ *
  * Development notes:
  * - Developed with AI assistance (Claude/Anthropic)
  * - MediaPipe hand detection: https://developers.google.com/mediapipe/solutions/vision/hand_landmarker
  * - getUserMedia API usage following MDN Web API documentation
-
  */
 
 import { useEffect, useRef, useState } from 'react'
