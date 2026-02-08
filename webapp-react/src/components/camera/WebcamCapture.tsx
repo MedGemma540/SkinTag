@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Camera, X, AlertCircle, CheckCircle } from 'lucide-react'
 import { useRealtimeValidation } from '@/hooks/useRealtimeValidation'
 import { HandOverlay } from './HandOverlay'
@@ -36,6 +36,18 @@ export function WebcamCapture({ onCapture, onClose }: WebcamCaptureProps) {
 
   const { analyzeFrame } = useRealtimeValidation()
 
+  const handleClose = useCallback(() => {
+    stopWebcam()
+    onClose()
+  }, [onClose])
+
+  const handleEscapeKey = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      handleClose()
+    }
+  }, [handleClose])
+
   useEffect(() => {
     startWebcam()
     return () => {
@@ -44,15 +56,9 @@ export function WebcamCapture({ onCapture, onClose }: WebcamCaptureProps) {
   }, [])
 
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleClose()
-      }
-    }
-
-    window.addEventListener('keydown', handleEscape)
-    return () => window.removeEventListener('keydown', handleEscape)
-  }, [])
+    window.addEventListener('keydown', handleEscapeKey)
+    return () => window.removeEventListener('keydown', handleEscapeKey)
+  }, [handleEscapeKey])
 
   const startWebcam = async () => {
     try {
@@ -133,11 +139,6 @@ export function WebcamCapture({ onCapture, onClose }: WebcamCaptureProps) {
         onCapture(file)
       }
     }, 'image/jpeg', 0.95)
-  }
-
-  const handleClose = () => {
-    stopWebcam()
-    onClose()
   }
 
   function getStatusColor(): string {
