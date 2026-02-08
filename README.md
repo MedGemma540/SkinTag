@@ -16,7 +16,7 @@ SkinTag provides preliminary screening for skin lesions using a fine-tuned SigLI
 - Provides actionable recommendations with inflammatory condition auto-promotion
 - Works on mobile devices with camera support
 
-**Live application:** https://skintaglabs.github.io/main/
+**Live application:** https://skintaglabs.github.io/
 
 ## Key Features
 
